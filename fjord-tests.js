@@ -5,6 +5,7 @@ var assert = require('assert');
 var fjord = require('./fjord');
 var WebObject = fjord.WebObject;
 
+// -----------------------------------------------------------------------
 
 function assertTrue(message, condition){
     sys.puts(message);
@@ -58,6 +59,36 @@ assertTrue("WebObject with mismatch should not match",
             new WebObject('{ "a": "B" }')
             .match(
             new WebObject('{ "c": [ "d" ], "a": "b" }')
+            )==null
+);
+
+assertTrue("WebObject with more should not match one with less",
+            new WebObject('{ "a": "b", "c": [ "d" ] }')
+            .match(
+            new WebObject('{ "a": "b" }')
+            )==null
+);
+
+assertDeepEqual("List equality checked when hashes differ",
+            new WebObject('{ "a": "b", "c": [ "e", "d" ] }')
+            .match(
+            new WebObject('{ "a": "b", "c": [ "e", "d" ], "f": "g" }')
+            ),
+            new WebObject('{ "a": "b", "c": [ "e", "d" ], "f": "g" }')
+);
+
+assertDeepEqual("WebObject with less in list should match one with more",
+            new WebObject('{ "a": "b", "c": [ "d", "dd" ] }')
+            .match(
+            new WebObject('{ "a": "b", "c": [ "e", "d", "f", "dd", "g" ] }')
+            ),
+            new WebObject('{ "a": "b", "c": [ "e", "d", "f", "dd", "g" ] }')
+);
+
+assertTrue("Disjoint lists don't match - or list order matters",
+            new WebObject('{ "a": "b", "c": [ "d", "dd" ] }')
+            .match(
+            new WebObject('{ "a": "b", "c": [ "e", "dd", "f", "d", "g" ] }')
             )==null
 );
 
