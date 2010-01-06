@@ -18,12 +18,17 @@ function assertFalse(message, condition){
     sys.puts("OK");
 }
 
+function assertDeepEqual(message, o1, o2){
+    sys.puts(message);
+    assert.deepEqual(o1, o2, message);
+    sys.puts("OK");
+}
 
 sys.puts('------------------ Fjord Tests ---------------------');
 
-assert.deepEqual(new WebObject('{ "a": "b", "c": [ "d" ] }'),
-                 new WebObject('{ "c": [ "d" ], "a": "b" }'),
-           "WebObjects should be deepEqual even if hash reordered"
+assertDeepEqual("WebObjects should be deepEqual even if hash reordered",
+                new WebObject('{ "a": "b", "c": [ "d" ] }'),
+                new WebObject('{ "c": [ "d" ], "a": "b" }')
 );
 
 assertTrue("WebObjects should be equal even if hash reordered",
