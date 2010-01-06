@@ -3,8 +3,8 @@ The Fjord Language
 ------------------
 
 
-Fjord is a Web-based, distributable/cloudable, functional language/logic for expressing
-domain logic as JSON match-rewrite rules.
+Fjord is a language for expressing domain logic as match-rewrite functions over mashable JSON Web objects.
+
 
 
 run tests:
