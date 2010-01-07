@@ -33,30 +33,42 @@ function deepEqual(o1, o2){
 }
 
 function matchTerms(j1, j2){
-    if(deepEqual(j1,j2)) return j2;
-    if(typeof j1 != typeof j2) return null;
-    if(typeof j1=='object'){
-        if(j1.constructor != j2.constructor) return null;
-        if(j1.constructor === Array){
-            var k1=0, k2=0;
-            for(; k1<j1.length; k1++){
-                for(; k2<j2.length; k2++){
-                    if(j1[k1]==j2[k2]) break;
-                }
-                if(k2==j2.length) return null;
+    var t1=j1? j1.constructor: null;
+    var t2=j2? j2.constructor: null;
+    if(t1===String && j1[0]=='/') return slashMatch(j1, j2);
+    if(t1!=t2) return null;
+    if(t1===Array){
+        var k1=0, k2=0;
+        for(; k1<j1.length; k1++){
+            for(; k2<j2.length; k2++){
+                if(matchTerms(j1[k1], j2[k2])) break;
             }
-            return j2;
+            if(k2==j2.length) return null;
+            k2++;
         }
-        else{
-            for(var k in j1){
-                var v1 = j1[k];
-                var v2 = j2[k];
-                if(matchTerms(v1, v2)==null) return null;
-            }
-            return j2;
-        }
+        return j2;
     }
-    return null;
+    if(t1===Object){
+        for(var k in j1){
+            var v1 = j1[k];
+            var v2 = j2[k];
+            if(matchTerms(v1, v2)==null) return null;
+        }
+        return j2;
+    }
+    return j1==j2? j2: null;
+}
+
+function slashMatch(j1, j2){
+    j1=j1.substr(1,j1.length-2);
+    if(j1=='null'){
+        if(j2==null || j2.length==0) return "";
+        return null;
+    }
+    if(j1=='decimal'){
+        if(/[0-9]*\.[0-9]*/.test(j2)) return j2;
+        else return null;
+    }
 }
 
 // -----------------------------------------------------------------------
