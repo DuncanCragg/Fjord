@@ -153,6 +153,13 @@ assertTrue("Simple instrument example matches",
             )
 );
 
+assertTrue("Single item matches its existence in list",
+            new WebObject('{ "buyers":   { "price": "/number/" } }')
+            .match(
+            new WebObject('{ "buyers": [ { "price": "" }, { "price": "11.0" } ] }')
+            )
+);
+
 /*
             new WebObject('{ "tags": [ "bid" ], "on": { "tags": [ "instrument" ], "bid-ask-spread": { "high-bid": "/$hibid;number/" } }, "price": "/null/( $hibid * 1.10 )/" } ')
 */

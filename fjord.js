@@ -36,7 +36,8 @@ function matchTerms(j1, j2){
     var t1=j1? j1.constructor: null;
     var t2=j2? j2.constructor: null;
     if(t1===String && j1[0]=='/') return slashMatch(j1, j2);
-    if(t1!=t2) return null;
+    if(t1!==Array && t2===Array){ j1=[ j1 ]; t1=Array; }
+    if(t1!==t2) return null;
     if(t1===Array){
         var k1=0, k2=0;
         for(; k1<j1.length; k1++){
