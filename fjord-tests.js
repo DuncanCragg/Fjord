@@ -88,7 +88,7 @@ assertTrue("WebObject with more should not match one with less",
             )==null
 );
 
-assertDeepEqual("List equality checked when hashes differ",
+assertDeepEqual("Array equality checked when hashes differ",
             new WebObject('{ "a": "b", "c": [ "e", "d" ] }')
             .match(
             new WebObject('{ "a": "b", "c": [ "e", "d" ], "f": "g" }')
@@ -96,7 +96,7 @@ assertDeepEqual("List equality checked when hashes differ",
             new WebObject('{ "a": "b", "c": [ "e", "d" ], "f": "g" }')
 );
 
-assertDeepEqual("WebObject with less in list should match one with more",
+assertDeepEqual("WebObject with less in array should match one with more",
             new WebObject('{ "a": "b", "c": [ "d", "dd" ] }')
             .match(
             new WebObject('{ "a": "b", "c": [ "e", "d", "f", "dd", "g" ] }')
@@ -104,14 +104,14 @@ assertDeepEqual("WebObject with less in list should match one with more",
             new WebObject('{ "a": "b", "c": [ "e", "d", "f", "dd", "g" ] }')
 );
 
-assertTrue("list elements can be complex",
+assertTrue("Array elements can be complex",
             new WebObject('{ "a": "b", "c": [ "d", { "dd": "ee" } ] }')
             .match(
             new WebObject('{ "a": "b", "c": [ "e", "d", "f", { "dd": "ee" }, "g" ] }')
             )
 );
 
-assertTrue("Disjoint lists don't match - or list order matters",
+assertTrue("Disjoint arrays don't match - or array order matters",
             new WebObject('{ "a": "b", "c": [ "d", "dd" ] }')
             .match(
             new WebObject('{ "a": "b", "c": [ "e", "dd", "f", "d", "g" ] }')
@@ -125,22 +125,36 @@ assertTrue("empty matches slash-null-slash",
             )
 );
 
-assertTrue("decimal matches slash-decimal-slash",
-            new WebObject('{ "high-bid": "/decimal/" }')
+assertTrue("number matches slash-number-slash",
+            new WebObject('{ "high-bid": "/number/" }')
             .match(
             new WebObject('{ "high-bid": "10.00" }')
             )
 );
 
+assertTrue("Array matches slash-array-slash",
+            new WebObject('{ "tags": "/array/" }')
+            .match(
+            new WebObject('{ "tags": [ "equity", "bid" ] }')
+            )
+);
+
+assertTrue("Object matches slash-object-slash",
+            new WebObject('{ "on": "/object/" }')
+            .match(
+            new WebObject('{ "on": { "tags": [ "bid" ] } }')
+            )
+);
+
 assertTrue("Simple instrument example matches",
-            new WebObject('{ "tags": [ "bid" ], "on": { "tags": [ "instrument" ], "bid-ask-spread": { "high-bid": "/decimal/" } }, "price": "/null/" } ')
+            new WebObject('{ "tags": [ "bid" ], "on": { "tags": [ "instrument" ], "bid-ask-spread": { "high-bid": "/number/" } }, "price": "/null/" } ')
             .match(
             new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@http://a-bank.com/fjord/equity-bid-9ac0d1-88ce1.json" ], "sellers": [ "@http://c-bank.com/fjord/equity-ask-510efb-cca62.json", "@http://d-bank.com/fjord/equity-ask-8560ae-33eff.json" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } } , "price": "" } ')
             )
 );
 
 /*
-            new WebObject('{ "tags": [ "bid" ], "on": { "tags": [ "instrument" ], "bid-ask-spread": { "high-bid": "/$hibid;decimal/" } }, "price": "/null/( $hibid * 1.10 )/" } ')
+            new WebObject('{ "tags": [ "bid" ], "on": { "tags": [ "instrument" ], "bid-ask-spread": { "high-bid": "/$hibid;number/" } }, "price": "/null/( $hibid * 1.10 )/" } ')
 */
 
 sys.puts('------------------ Tests Done ---------------------');

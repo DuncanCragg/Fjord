@@ -65,8 +65,16 @@ function slashMatch(j1, j2){
         if(j2==null || j2.length==0) return "";
         return null;
     }
-    if(j1=='decimal'){
+    if(j1=='number'){
         if(/[0-9]*\.[0-9]*/.test(j2)) return j2;
+        else return null;
+    }
+    if(j1=='array'){
+        if(j2.constructor===Array) return j2;
+        else return null;
+    }
+    if(j1=='object'){
+        if(j2.constructor===Object) return j2;
         else return null;
     }
 }
