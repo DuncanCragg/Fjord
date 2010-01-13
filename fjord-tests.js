@@ -161,14 +161,6 @@ assertDeepEqual("Reserved word 'null' doesn't match literally",
             new WebObject('{ "price": "null", "test": "LHS" }')
 );
 
-assertDeepEqual("Simple instrument example matches",
-            new WebObject('{ "tags": [ "bid" ], "on": { "tags": [ "instrument" ], "bid-ask-spread": { "high-bid": "/number/" } }, "price": "/null/", "test": "/LHS/RHS/" } ')
-            .applyTo(
-            new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@http://a-bank.com/fjord/equity-bid-9ac0d1-88ce1.json" ], "sellers": [ "@http://c-bank.com/fjord/equity-ask-510efb-cca62.json", "@http://d-bank.com/fjord/equity-ask-8560ae-33eff.json" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } } , "price": "", "test": "LHS" } ')
-            ),
-            new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@http://a-bank.com/fjord/equity-bid-9ac0d1-88ce1.json" ], "sellers": [ "@http://c-bank.com/fjord/equity-ask-510efb-cca62.json", "@http://d-bank.com/fjord/equity-ask-8560ae-33eff.json" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } } , "price": "", "test": "RHS" } ')
-);
-
 assertDeepEqual("Single item matches its existence in list",
             new WebObject('{ "buyers":   { "price": "/number/" }, "test": "/LHS/RHS/" }')
             .applyTo(
@@ -206,6 +198,14 @@ obj  = new WebObject('{ "hello": "world" }');
 
 assertTrue("If rule is applied but result unchanged, result === target",
             rule.applyTo(obj)===obj
+);
+
+assertDeepEqual("Simple instrument example matches",
+            new WebObject('{ "tags": [ "bid" ], "on": { "tags": [ "instrument" ], "bid-ask-spread": { "high-bid": "/number/" } }, "price": "/null/", "test": "/LHS/RHS/" } ')
+            .applyTo(
+            new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@http://a-bank.com/fjord/equity-bid-9ac0d1-88ce1.json" ], "sellers": [ "@http://c-bank.com/fjord/equity-ask-510efb-cca62.json", "@http://d-bank.com/fjord/equity-ask-8560ae-33eff.json" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } } , "price": "", "test": "LHS" } ')
+            ),
+            new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@http://a-bank.com/fjord/equity-bid-9ac0d1-88ce1.json" ], "sellers": [ "@http://c-bank.com/fjord/equity-ask-510efb-cca62.json", "@http://d-bank.com/fjord/equity-ask-8560ae-33eff.json" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } } , "price": "", "test": "RHS" } ')
 );
 
 /*
