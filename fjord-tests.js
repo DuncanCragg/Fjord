@@ -176,6 +176,14 @@ assertDeepEqual("Rewrites on a object item",
             new WebObject('{ "a": { "b": "d", "x": "y" } }')
 );
 
+assertDeepEqual("Rewrites number inside object",
+            new WebObject('{ "a": { "b": "/number/12.0/" } }')
+            .applyTo(
+            new WebObject('{ "a": { "b": "11.0", "x": "y" } }')
+            ),
+            new WebObject('{ "a": { "b": "12.0", "x": "y" } }')
+);
+
 assertDeepEqual("Rewrites on an array item",
             new WebObject('{ "a": [ "/c/d/" ] }')
             .applyTo(
@@ -198,14 +206,6 @@ assertDeepEqual("Rewrites on an array item with two and a half matches in rotati
             new WebObject('{ "a": [ "e", "x", "c", "y", "e", "z", "c", "y", "e", "z", "c", "z" ] }')
             ),
             new WebObject('{ "a": [ "e", "x", "d", "y", "f", "z", "d", "y", "f", "z", "d", "z" ] }')
-);
-
-assertDeepEqual("Rewrites at next level down",
-            new WebObject('{ "buyers": { "price": "/number/12.0/" }, "test": "/LHS/RHS/" }')
-            .applyTo(
-            new WebObject('{ "buyers": { "price": "11.0" } , "test": "LHS" }')
-            ),
-            new WebObject('{ "buyers": { "price": "12.0" } , "test": "RHS" }')
 );
 
 assertDeepEqual("Single item matches its existence in array",
