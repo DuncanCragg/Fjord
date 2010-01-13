@@ -66,107 +66,115 @@ assertFalse("WebObjects that aren't equal should not come up equal",
 );
 
 assertDeepEqual("WebObject with less should match one with more",
-            new WebObject('{ "a": "b", "x": "/y/z/" }')
+            new WebObject('{ "a": "b", "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "c": [ "d" ], "a": "b", "x": "y" }')
+            new WebObject('{ "c": [ "d" ], "a": "b", "test": "LHS" }')
             ),
-            new WebObject('{ "a": "b", "c": [ "d" ], "x": "z" }')
+            new WebObject('{ "a": "b", "c": [ "d" ], "test": "RHS" }')
 );
 
 assertDeepEqual("WebObject with mismatch should not match",
-            new WebObject('{ "a": "B", "x": "/y/z/" }')
+            new WebObject('{ "a": "B", "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "c": [ "d" ], "a": "b", "x": "y" }')
+            new WebObject('{ "c": [ "d" ], "a": "b", "test": "LHS" }')
             ),
-            new WebObject('{ "a": "b", "c": [ "d" ], "x": "y" }')
+            new WebObject('{ "a": "b", "c": [ "d" ], "test": "LHS" }')
 );
 
 assertDeepEqual("WebObject with more should not match one with less",
-            new WebObject('{ "a": "b", "c": [ "d" ], "x": "/y/z/" }')
+            new WebObject('{ "a": "b", "c": [ "d" ], "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "a": "b", "x": "y" }')
+            new WebObject('{ "a": "b", "test": "LHS" }')
             ),
-            new WebObject('{ "a": "b", "x": "y" }')
+            new WebObject('{ "a": "b", "test": "LHS" }')
 );
 
 assertDeepEqual("Array equality checked when hashes differ",
-            new WebObject('{ "a": "b", "c": [ "e", "d" ], "x": "/y/z/" }')
+            new WebObject('{ "a": "b", "c": [ "e", "d" ], "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "a": "b", "c": [ "e", "d" ], "f": "g", "x": "y" }')
+            new WebObject('{ "a": "b", "c": [ "e", "d" ], "f": "g", "test": "LHS" }')
             ),
-            new WebObject('{ "a": "b", "c": [ "e", "d" ], "f": "g", "x": "z" }')
+            new WebObject('{ "a": "b", "c": [ "e", "d" ], "f": "g", "test": "RHS" }')
 );
 
 assertDeepEqual("WebObject with less in array should match one with more",
-            new WebObject('{ "a": "b", "c": [ "d", "dd" ], "x": "/y/z/" }')
+            new WebObject('{ "a": "b", "c": [ "d", "dd" ], "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "a": "b", "c": [ "e", "d", "f", "dd", "g" ], "x": "y" }')
+            new WebObject('{ "a": "b", "c": [ "e", "d", "f", "dd", "g" ], "test": "LHS" }')
             ),
-            new WebObject('{ "a": "b", "c": [ "e", "d", "f", "dd", "g" ], "x": "z" }')
+            new WebObject('{ "a": "b", "c": [ "e", "d", "f", "dd", "g" ], "test": "RHS" }')
 );
 
 assertDeepEqual("Array elements can be complex",
-            new WebObject('{ "a": "b", "c": [ "d", { "dd": "ee" } ], "x": "/y/z/" }')
+            new WebObject('{ "a": "b", "c": [ "d", { "dd": "ee" } ], "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "a": "b", "c": [ "e", "d", "f", { "dd": "ee" }, "g" ], "x": "y" }')
+            new WebObject('{ "a": "b", "c": [ "e", "d", "f", { "dd": "ee" }, "g" ], "test": "LHS" }')
             ),
-            new WebObject('{ "a": "b", "c": [ "e", "d", "f", { "dd": "ee" }, "g" ], "x": "z" }')
+            new WebObject('{ "a": "b", "c": [ "e", "d", "f", { "dd": "ee" }, "g" ], "test": "RHS" }')
 );
 
 assertDeepEqual("Disjoint arrays don't match - or array order matters",
-            new WebObject('{ "a": "b", "c": [ "d", "dd" ], "x": "/y/z/" }')
+            new WebObject('{ "a": "b", "c": [ "d", "dd" ], "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "a": "b", "c": [ "e", "dd", "f", "d", "g" ], "x": "y" }')
+            new WebObject('{ "a": "b", "c": [ "e", "dd", "f", "d", "g" ], "test": "LHS" }')
             ),
-            new WebObject('{ "a": "b", "c": [ "e", "dd", "f", "d", "g" ], "x": "y" }')
+            new WebObject('{ "a": "b", "c": [ "e", "dd", "f", "d", "g" ], "test": "LHS" }')
 );
 
 assertDeepEqual("Empty matches slash-null-slash",
-            new WebObject('{ "price": "/null/", "x": "/y/z/" }')
+            new WebObject('{ "price": "/null/", "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "price": "", "x": "y" }')
+            new WebObject('{ "price": "", "test": "LHS" }')
             ),
-            new WebObject('{ "price": "", "x": "z" }')
+            new WebObject('{ "price": "", "test": "RHS" }')
 );
 
 assertDeepEqual("Number matches slash-number-slash",
-            new WebObject('{ "high-bid": "/number/", "x": "/y/z/" }')
+            new WebObject('{ "high-bid": "/number/", "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "high-bid": "10.00", "x": "y" }')
+            new WebObject('{ "high-bid": "10.00", "test": "LHS" }')
             ),
-            new WebObject('{ "high-bid": "10.00", "x": "z" }')
+            new WebObject('{ "high-bid": "10.00", "test": "RHS" }')
 );
 
 assertDeepEqual("Array matches slash-array-slash",
-            new WebObject('{ "tags": "/array/", "x": "/y/z/" }')
+            new WebObject('{ "tags": "/array/", "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "tags": [ "equity", "bid" ], "x": "y" }')
+            new WebObject('{ "tags": [ "equity", "bid" ], "test": "LHS" }')
             ),
-            new WebObject('{ "tags": [ "equity", "bid" ], "x": "z" }')
+            new WebObject('{ "tags": [ "equity", "bid" ], "test": "RHS" }')
 );
 
 assertDeepEqual("Object matches slash-object-slash",
-            new WebObject('{ "on": "/object/", "x": "/y/z/" }')
+            new WebObject('{ "on": "/object/", "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "on": { "tags": [ "bid" ] }, "x": "y" }')
+            new WebObject('{ "on": { "tags": [ "bid" ] }, "test": "LHS" }')
             ),
-            new WebObject('{ "on": { "tags": [ "bid" ] }, "x": "z" }')
+            new WebObject('{ "on": { "tags": [ "bid" ] }, "test": "RHS" }')
+);
+
+assertDeepEqual("Reserved word 'null' doesn't match literally",
+            new WebObject('{ "price": "/null/", "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "price": "null", "test": "LHS" }')
+            ),
+            new WebObject('{ "price": "null", "test": "LHS" }')
 );
 
 assertDeepEqual("Simple instrument example matches",
-            new WebObject('{ "tags": [ "bid" ], "on": { "tags": [ "instrument" ], "bid-ask-spread": { "high-bid": "/number/" } }, "price": "/null/", "x": "/y/z/" } ')
+            new WebObject('{ "tags": [ "bid" ], "on": { "tags": [ "instrument" ], "bid-ask-spread": { "high-bid": "/number/" } }, "price": "/null/", "test": "/LHS/RHS/" } ')
             .applyTo(
-            new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@http://a-bank.com/fjord/equity-bid-9ac0d1-88ce1.json" ], "sellers": [ "@http://c-bank.com/fjord/equity-ask-510efb-cca62.json", "@http://d-bank.com/fjord/equity-ask-8560ae-33eff.json" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } } , "price": "", "x": "y" } ')
+            new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@http://a-bank.com/fjord/equity-bid-9ac0d1-88ce1.json" ], "sellers": [ "@http://c-bank.com/fjord/equity-ask-510efb-cca62.json", "@http://d-bank.com/fjord/equity-ask-8560ae-33eff.json" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } } , "price": "", "test": "LHS" } ')
             ),
-            new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@http://a-bank.com/fjord/equity-bid-9ac0d1-88ce1.json" ], "sellers": [ "@http://c-bank.com/fjord/equity-ask-510efb-cca62.json", "@http://d-bank.com/fjord/equity-ask-8560ae-33eff.json" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } } , "price": "", "x": "z" } ')
+            new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@http://a-bank.com/fjord/equity-bid-9ac0d1-88ce1.json" ], "sellers": [ "@http://c-bank.com/fjord/equity-ask-510efb-cca62.json", "@http://d-bank.com/fjord/equity-ask-8560ae-33eff.json" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } } , "price": "", "test": "RHS" } ')
 );
 
 assertDeepEqual("Single item matches its existence in list",
-            new WebObject('{ "buyers":   { "price": "/number/" }, "x": "/y/z/" }')
+            new WebObject('{ "buyers":   { "price": "/number/" }, "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "buyers": [ { "price": "" }, { "price": "11.0" } ], "x": "y" }')
+            new WebObject('{ "buyers": [ { "price": "" }, { "price": "11.0" } ], "test": "LHS" }')
             ),
-            new WebObject('{ "buyers": [ { "price": "" }, { "price": "11.0" } ], "x": "z" }')
+            new WebObject('{ "buyers": [ { "price": "" }, { "price": "11.0" } ], "test": "RHS" }')
 );
 
 assertDeepEqual("Simple rule rewrites null to a string",
