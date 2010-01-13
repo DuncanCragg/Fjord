@@ -25,13 +25,9 @@ WebObject.prototype.equals = function(that){
     return deepEqual(this.json, that.json);
 }
 
-WebObject.prototype.match = function(that){
-    return matchTerms(this.json, that.json)===that.json? that: null;
-}
-
 WebObject.prototype.applyTo = function(that){
     var jr = applyTo(this.json, that.json);
-    return jr===that.json? that: new WebObject(jr);
+    return jr==null || jr===that.json? that: new WebObject(jr);
 }
 
 // -----------------------------------------------------------------------
@@ -51,7 +47,7 @@ function applyTo(j1, j2){
     var t2=j2? j2.constructor: null;
     if(t1===String && j1[0]=='/') return slashApply(j1, j2);
     if(t1!==Array && t2===Array){ j1=[ j1 ]; t1=Array; }
-    if(t1!==t2) return j2;
+    if(t1!==t2) return null;
     if(t1===Array){
         var k1=0, k2=0;
         for(; k1<j1.length; k1++){
@@ -59,7 +55,7 @@ function applyTo(j1, j2){
                 var js=applyTo(j1[k1], j2[k2]);
                 if(js) break;
             }
-            if(k2==j2.length) return j2;
+            if(k2==j2.length) return null;
             k2++;
         }
         return j2;
@@ -70,15 +66,14 @@ function applyTo(j1, j2){
             var v1 = j1[k];
             var v2 = j2[k]; if(v2==null) v2="";
             var v3=applyTo(v1, v2)
-            if(v3==null) return j2;
-            if(v2 != v3){
-                if(j3==null) j3=shallowCopy(j2);
-                j3[k]=v3;
-            } 
+            if(v3==null) return null;
+            if(v3==v2) continue;
+            if(j3==null) j3=shallowCopy(j2);
+            j3[k]=v3;
         }
         return j3? j3: j2;
     }
-    return j2;
+    return j1==j2? j2: null;
 }
 
 function shallowCopy(obj){
@@ -93,71 +88,23 @@ function slashApply(s1, j2){
     var lhs=(m != -1)? s1.substring(1,m): s1.substring(1);
     var rhs=(e != -1)? s1.substring(m+1,e): null; 
     if(lhs=='null'){
-        if(j2.length==0) return rhs? rhs: "";
+        if(j2.length==0) return rhs? rhs: j2;
         return null;
     }
     if(lhs=='number'){
         if(/[0-9]*\.[0-9]*/.test(j2)) return j2;
-        else return j2;
+        return null;
     }
     if(lhs=='array'){
         if(j2.constructor===Array) return j2;
-        else return j2;
+        return null;
     }
     if(lhs=='object'){
         if(j2.constructor===Object) return j2;
-        else return j2;
-    }
-    if(j2.constructor===String && lhs==j2) return rhs? rhs: j2;
-}
-
-function matchTerms(j1, j2){
-    var t1=j1? j1.constructor: null;
-    var t2=j2? j2.constructor: null;
-    if(t1===String && j1[0]=='/') return slashMatch(j1, j2);
-    if(t1!==Array && t2===Array){ j1=[ j1 ]; t1=Array; }
-    if(t1!==t2) return null;
-    if(t1===Array){
-        var k1=0, k2=0;
-        for(; k1<j1.length; k1++){
-            for(; k2<j2.length; k2++){
-                if(matchTerms(j1[k1], j2[k2])) break;
-            }
-            if(k2==j2.length) return null;
-            k2++;
-        }
-        return j2;
-    }
-    if(t1===Object){
-        for(var k in j1){
-            var v1 = j1[k];
-            var v2 = j2[k];
-            if(matchTerms(v1, v2)==null) return null;
-        }
-        return j2;
-    }
-    return j1==j2? j2: null;
-}
-
-function slashMatch(j1, j2){
-    var i=j1.indexOf('/',1)-1;
-    j1=j1.substr(1,i);
-    if(j1=='null'){
-        if(j2==null || j2.length==0) return "";
         return null;
     }
-    if(j1=='number'){
-        if(/[0-9]*\.[0-9]*/.test(j2)) return j2;
-        else return null;
-    }
-    if(j1=='array'){
-        if(j2.constructor===Array) return j2;
-        else return null;
-    }
-    if(j1=='object'){
-        if(j2.constructor===Object) return j2;
-        else return null;
-    }
+    if(j2.constructor===String && lhs==j2) return rhs? rhs: j2;
+    return null;
 }
 
 // -----------------------------------------------------------------------
