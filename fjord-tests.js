@@ -219,9 +219,9 @@ assertDeepEqual("Single item matches its existence in array",
 assertDeepEqual("Single item matches in array and rewrites it each time",
             new WebObject('{ "buyers":   { "price": "/number/12.0/" }, "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "buyers": [ { "price": "10.0" }, { "price": "11.0" } ], "test": "LHS" }')
+            new WebObject('{ "buyers": [ { "price": "10.0" }, { "price": "none" }, { "price": "11.0" } ], "test": "LHS" }')
             ),
-            new WebObject('{ "buyers": [ { "price": "12.0" }, { "price": "12.0" } ], "test": "RHS" }')
+            new WebObject('{ "buyers": [ { "price": "12.0" }, { "price": "none" }, { "price": "12.0" } ], "test": "RHS" }')
 );
 
 
