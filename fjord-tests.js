@@ -12,9 +12,9 @@ function assertTrue(message, condition){
     sys.puts(message);
     try{
         assert.ok(condition, message);
-        sys.puts("OK");
+        sys.puts("..OK");
     } catch(e) {
-        sys.puts("FAIL: "+condition); 
+        sys.puts("..FAIL: "+condition); 
         fails++;
     }
     if(fails) sys.puts("FAILs: "+fails);
@@ -24,9 +24,9 @@ function assertFalse(message, condition){
     sys.puts(message);
     try{
         assert.ok(!condition, message);
-        sys.puts("OK");
+        sys.puts("..OK");
     } catch(e) {
-        sys.puts("FAIL: "+condition); 
+        sys.puts("..FAIL: "+condition); 
         fails++;
     }
     if(fails) sys.puts("FAILs: "+fails);
@@ -36,9 +36,9 @@ function assertDeepEqual(message, o1, o2){
     sys.puts(message);
     try{
         assert.deepEqual(o1, o2, message);
-        sys.puts("OK");
+        sys.puts("..OK");
     } catch(e) {
-        sys.puts("FAIL: "+o1+"/"+o2); 
+        sys.puts("..FAIL: "+o1+"/"+o2); 
         fails++;
     }
     if(fails) sys.puts("FAILs: "+fails);
@@ -118,14 +118,14 @@ assertTrue("Disjoint arrays don't match - or array order matters",
             )==null
 );
 
-assertTrue("empty matches slash-null-slash",
+assertTrue("Empty matches slash-null-slash",
             new WebObject('{ "price": "/null/" }')
             .match(
             new WebObject('{ "price": "" }')
             )
 );
 
-assertTrue("number matches slash-number-slash",
+assertTrue("Number matches slash-number-slash",
             new WebObject('{ "high-bid": "/number/" }')
             .match(
             new WebObject('{ "high-bid": "10.00" }')
@@ -160,8 +160,44 @@ assertTrue("Single item matches its existence in list",
             )
 );
 
+assertDeepEqual("Simple rule rewrites null to a string - Fjord's first Hello World Rule!",
+            new WebObject('{ "hello": "/mmm/world/" }')
+            .applyTo(
+            new WebObject('{ "hello": "mmm" }')),
+            new WebObject('{ "hello": "world" }')
+);
+
+
+rule = new WebObject('{ "hello": "/bye/world/" }');
+obj  = new WebObject('{ "hello": "" }');
+
+assertTrue("If rule isn't applied, result === target",
+            rule.applyTo(obj)===obj
+);
+
+
+rule = new WebObject('{ "hello": "/null/world/" }');
+obj  = new WebObject('{ "hello": "" }');
+
+assertTrue("If rule is applied, result !== target",
+            rule.applyTo(obj)!==obj
+);
+
+
+rule = new WebObject('{ "hello": "/world/world/" }');
+obj  = new WebObject('{ "hello": "world" }');
+
+assertTrue("If rule is applied but result unchanged, result === target",
+            rule.applyTo(obj)===obj
+);
+
 /*
+assertDeepEqual("Instrument price rewrite rule works",
             new WebObject('{ "tags": [ "bid" ], "on": { "tags": [ "instrument" ], "bid-ask-spread": { "high-bid": "/$hibid;number/" } }, "price": "/null/( $hibid * 1.10 )/" } ')
+            .applyTo(
+            new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } }, "price": "" } ')),
+            new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } }, "price": "11.00" } ')
+);
 */
 
 sys.puts('------------------ Tests Done ---------------------');
