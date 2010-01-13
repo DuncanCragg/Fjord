@@ -65,6 +65,8 @@ assertFalse("WebObjects that aren't equal should not come up equal",
              )
 );
 
+// -----------------------------------------------------------------------
+
 assertDeepEqual("WebObject with less should match one with more",
             new WebObject('{ "a": "b", "test": "/LHS/RHS/" }')
             .applyTo(
@@ -121,6 +123,8 @@ assertDeepEqual("Disjoint arrays don't match - or array order matters",
             new WebObject('{ "a": "b", "c": [ "e", "dd", "f", "d", "g" ], "test": "LHS" }')
 );
 
+// -----------------------------------------------------------------------
+
 assertDeepEqual("Empty matches slash-null-slash",
             new WebObject('{ "price": "/null/", "test": "/LHS/RHS/" }')
             .applyTo(
@@ -161,14 +165,16 @@ assertDeepEqual("Reserved word 'null' doesn't match literally",
             new WebObject('{ "price": "null", "test": "LHS" }')
 );
 
-assertDeepEqual("Simple rule rewrites null to a string",
-            new WebObject('{ "price": "/null/10.00/" }')
+// -----------------------------------------------------------------------
+
+assertDeepEqual("Rewrites null to a string",
+            new WebObject('{ "a": "/null/b/" }')
             .applyTo(
-            new WebObject('{ "price": "" }')),
-            new WebObject('{ "price": "10.00" }')
+            new WebObject('{ "x": "y", "a": "" }')),
+            new WebObject('{ "x": "y", "a": "b" }')
 );
 
-assertDeepEqual("Rewrites on a object item",
+assertDeepEqual("Rewrites on a sub-object item",
             new WebObject('{ "a": { "b": "/c/d/" } }')
             .applyTo(
             new WebObject('{ "a": { "b": "c", "x": "y" } }')
@@ -184,12 +190,30 @@ assertDeepEqual("Rewrites number inside object",
             new WebObject('{ "a": { "b": "12.0", "x": "y" } }')
 );
 
-assertDeepEqual("Rewrites on an array item",
+// -------------------------------------------------------------------
+
+assertDeepEqual("Rewrites null to a string in an array",
+            new WebObject('{ "a": [ "/null/d/" ] }')
+            .applyTo(
+            new WebObject('{ "a": [ "x", "", "y" ] }')
+            ),
+            new WebObject('{ "a": [ "x", "d", "y" ] }')
+);
+
+assertDeepEqual("Rewrites on a sub-array item",
             new WebObject('{ "a": [ "/c/d/" ] }')
             .applyTo(
             new WebObject('{ "a": [ "x", "c", "y" ] }')
             ),
             new WebObject('{ "a": [ "x", "d", "y" ] }')
+);
+
+assertDeepEqual("Rewrites number inside sub-array item",
+            new WebObject('{ "a": [ "/number/12.0/" ] }')
+            .applyTo(
+            new WebObject('{ "a": [ "x", "11.0", "y" ] }')
+            ),
+            new WebObject('{ "a": [ "x", "12.0", "y" ] }')
 );
 
 assertDeepEqual("Rewrites on many array items with one element match",
@@ -201,11 +225,11 @@ assertDeepEqual("Rewrites on many array items with one element match",
 );
 
 assertDeepEqual("Rewrites on an array item with two and a half matches in rotation",
-            new WebObject('{ "a": [ "/c/d/", "/e/f/" ] }')
+            new WebObject('{ "a": [ "/c/d/", "/number/5.0/" ] }')
             .applyTo(
-            new WebObject('{ "a": [ "e", "x", "c", "y", "e", "z", "c", "y", "e", "z", "c", "z" ] }')
+            new WebObject('{ "a": [ "e", "x", "c", "y", "1.0", "z", "c", "y", "2.0", "z", "c", "z" ] }')
             ),
-            new WebObject('{ "a": [ "e", "x", "d", "y", "f", "z", "d", "y", "f", "z", "d", "z" ] }')
+            new WebObject('{ "a": [ "e", "x", "d", "y", "5.0", "z", "d", "y", "5.0", "z", "d", "z" ] }')
 );
 
 assertDeepEqual("Single item matches its existence in array",
@@ -224,6 +248,7 @@ assertDeepEqual("Single item matches in array and rewrites it each time",
             new WebObject('{ "buyers": [ { "price": "12.0" }, { "price": "none" }, { "price": "12.0" } ], "test": "RHS" }')
 );
 
+// -------------------------------------------------------------------
 
 rule = new WebObject('{ "hello": "/bye/world/" }');
 obj  = new WebObject('{ "hello": "" }');
@@ -247,6 +272,8 @@ obj  = new WebObject('{ "hello": "world" }');
 assertTrue("If rule is applied but result unchanged, result === target",
             rule.applyTo(obj)===obj
 );
+
+// -------------------------------------------------------------------
 
 assertDeepEqual("Simple instrument example matches",
             new WebObject('{ "tags": [ "bid" ], "on": { "tags": [ "instrument" ], "bid-ask-spread": { "high-bid": "/number/" } }, "price": "/null/11.00/" } ')
