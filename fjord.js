@@ -45,20 +45,29 @@ function deepEqual(o1, o2){
 function applyTo(j1, j2){
     var t1=j1? j1.constructor: null;
     var t2=j2? j2.constructor: null;
-    if(t1===String && j1[0]=='/') return slashApply(j1, j2);
+    if(t1===String && j1[0]=='/') { var r = slashApply(j1, j2); if(r!=null) return r; }
     if(t1!==Array && t2===Array){ j1=[ j1 ]; t1=Array; }
     if(t1!==t2) return null;
     if(t1===Array){
-        var k1=0, k2=0;
-        for(; k1<j1.length; k1++){
-            for(; k2<j2.length; k2++){
-                var js=applyTo(j1[k1], j2[k2]);
-                if(js) break;
+        var j3=null;
+        var k1=0;
+        var onepass=false;
+        for(var k2=0; k2<j2.length; k2++){
+            var v1 = j1[k1];
+            var v2 = j2[k2];
+            var v3=applyTo(v1, v2);
+            if(v3==null) continue;
+            k1++;
+            if(k1==j1.length){
+                onepass=true;
+                k1=0;
             }
-            if(k2==j2.length) return null;
-            k2++;
+            if(v3==v2) continue;
+            if(j3==null) j3=shallowArrayCopy(j2);
+            j3[k2]=v3;
         }
-        return j2;
+        if(!onepass) return null;
+        return j3? j3: j2;
     }
     if(t1===Object){
         var j3=null;
@@ -68,7 +77,7 @@ function applyTo(j1, j2){
             var v3=applyTo(v1, v2)
             if(v3==null) return null;
             if(v3==v2) continue;
-            if(j3==null) j3=shallowCopy(j2);
+            if(j3==null) j3=shallowObjectCopy(j2);
             j3[k]=v3;
         }
         return j3? j3: j2;
@@ -76,9 +85,15 @@ function applyTo(j1, j2){
     return j1==j2? j2: null;
 }
 
-function shallowCopy(obj){
+function shallowObjectCopy(obj){
     r = {};
     for(var k in obj) r[k] = obj[k];
+    return r;
+}
+
+function shallowArrayCopy(arr){
+    r = [];
+    for(var k in arr) r[k] = arr[k];
     return r;
 }
 
@@ -92,7 +107,7 @@ function slashApply(s1, j2){
         return null;
     }
     if(lhs=='number'){
-        if(/[0-9]*\.[0-9]*/.test(j2)) return j2;
+        if(/[0-9]*\.[0-9]*/.test(j2)) return rhs? rhs: j2;
         return null;
     }
     if(lhs=='array'){

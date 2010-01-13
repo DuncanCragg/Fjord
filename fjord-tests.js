@@ -161,7 +161,54 @@ assertDeepEqual("Reserved word 'null' doesn't match literally",
             new WebObject('{ "price": "null", "test": "LHS" }')
 );
 
-assertDeepEqual("Single item matches its existence in list",
+assertDeepEqual("Simple rule rewrites null to a string",
+            new WebObject('{ "price": "/null/10.00/" }')
+            .applyTo(
+            new WebObject('{ "price": "" }')),
+            new WebObject('{ "price": "10.00" }')
+);
+
+assertDeepEqual("Rewrites on a object item",
+            new WebObject('{ "a": { "b": "/c/d/" } }')
+            .applyTo(
+            new WebObject('{ "a": { "b": "c", "x": "y" } }')
+            ),
+            new WebObject('{ "a": { "b": "d", "x": "y" } }')
+);
+
+assertDeepEqual("Rewrites on an array item",
+            new WebObject('{ "a": [ "/c/d/" ] }')
+            .applyTo(
+            new WebObject('{ "a": [ "x", "c", "y" ] }')
+            ),
+            new WebObject('{ "a": [ "x", "d", "y" ] }')
+);
+
+assertDeepEqual("Rewrites on many array items with one element match",
+            new WebObject('{ "a": "/c/d/" }')
+            .applyTo(
+            new WebObject('{ "a": [ "c", "c", "c" ] }')
+            ),
+            new WebObject('{ "a": [ "d", "d", "d" ] }')
+);
+
+assertDeepEqual("Rewrites on an array item with two and a half matches in rotation",
+            new WebObject('{ "a": [ "/c/d/", "/e/f/" ] }')
+            .applyTo(
+            new WebObject('{ "a": [ "e", "x", "c", "y", "e", "z", "c", "y", "e", "z", "c", "z" ] }')
+            ),
+            new WebObject('{ "a": [ "e", "x", "d", "y", "f", "z", "d", "y", "f", "z", "d", "z" ] }')
+);
+
+assertDeepEqual("Rewrites at next level down",
+            new WebObject('{ "buyers": { "price": "/number/12.0/" }, "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "buyers": { "price": "11.0" } , "test": "LHS" }')
+            ),
+            new WebObject('{ "buyers": { "price": "12.0" } , "test": "RHS" }')
+);
+
+assertDeepEqual("Single item matches its existence in array",
             new WebObject('{ "buyers":   { "price": "/number/" }, "test": "/LHS/RHS/" }')
             .applyTo(
             new WebObject('{ "buyers": [ { "price": "" }, { "price": "11.0" } ], "test": "LHS" }')
@@ -169,11 +216,12 @@ assertDeepEqual("Single item matches its existence in list",
             new WebObject('{ "buyers": [ { "price": "" }, { "price": "11.0" } ], "test": "RHS" }')
 );
 
-assertDeepEqual("Simple rule rewrites null to a string",
-            new WebObject('{ "price": "/null/10.00/" }')
+assertDeepEqual("Single item matches in array and rewrites it each time",
+            new WebObject('{ "buyers":   { "price": "/number/12.0/" }, "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "price": "" }')),
-            new WebObject('{ "price": "10.00" }')
+            new WebObject('{ "buyers": [ { "price": "10.0" }, { "price": "11.0" } ], "test": "LHS" }')
+            ),
+            new WebObject('{ "buyers": [ { "price": "12.0" }, { "price": "12.0" } ], "test": "RHS" }')
 );
 
 
