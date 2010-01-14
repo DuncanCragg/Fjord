@@ -102,24 +102,38 @@ function slashApply(s1, j2){
     var e  =(m != -1)? s1.indexOf('/',m+1): -1;
     var lhs=(m != -1)? s1.substring(1,m): s1.substring(1);
     var rhs=(e != -1)? s1.substring(m+1,e): null; 
-    if(lhs=='null'){
-        if(j2.length==0) return rhs? rhs: j2;
-        return null;
+    var ands = lhs.split(';');
+    for(var i in ands){
+        and = ands[i];
+        if(and=='null'){
+            if(j2.length!=0) return null;
+            continue;
+        }
+        if(and=='number'){
+            if(!/[0-9]*\.[0-9]*/.test(j2)) return null;
+            continue;
+        }
+        if(and=='array'){
+            if(j2.constructor!==Array) return null;
+            continue;
+        }
+        if(and=='object'){
+            if(j2.constructor!==Object) return null;
+            continue;
+        }
+        var lt = and.indexOf('lt(')==0;
+        var gt = and.indexOf('gt(')==0;
+        if(lt || gt){
+            if(j2.constructor!==String) return null;
+            var close = and.indexOf(')'); if(close == -1) return null;
+            var arg = and.substring(3, close);
+            if(gt && parseFloat(j2) <= parseFloat(arg)) return null;
+            if(lt && parseFloat(j2) >= parseFloat(arg)) return null;
+            continue;
+        }
+        if(!(j2.constructor===String && and==j2)) return null;
     }
-    if(lhs=='number'){
-        if(/[0-9]*\.[0-9]*/.test(j2)) return rhs? rhs: j2;
-        return null;
-    }
-    if(lhs=='array'){
-        if(j2.constructor===Array) return j2;
-        return null;
-    }
-    if(lhs=='object'){
-        if(j2.constructor===Object) return j2;
-        return null;
-    }
-    if(j2.constructor===String && lhs==j2) return rhs? rhs: j2;
-    return null;
+    return rhs? rhs: j2;
 }
 
 // -----------------------------------------------------------------------

@@ -275,6 +275,22 @@ assertTrue("If rule is applied but result unchanged, result === target",
 
 // -------------------------------------------------------------------
 
+assertDeepEqual("Matches lt and gt - less or greater than",
+            new WebObject('{ "a": [ "/gt(3.0)/3+/", "/lt(1.0)/1-/" ] }')
+            .applyTo(
+            new WebObject('{ "a": [ "3.1", "0.9", "3.0", "1.0" ] }')),
+            new WebObject('{ "a": [ "3+",  "1-",  "3.0", "1.0" ] }')
+);
+
+assertDeepEqual("Matches semicolon list as 'and'",
+            new WebObject('{ "a": [ "/number;gt(1.0);lt(3.0)/1-3/" ] }')
+            .applyTo(
+            new WebObject('{ "a": [ "3.0", "2.0", "1.0" ] }')),
+            new WebObject('{ "a": [ "3.0", "1-3", "1.0" ] }')
+);
+
+// -------------------------------------------------------------------
+
 assertDeepEqual("Simple instrument example matches",
             new WebObject('{ "tags": [ "bid" ], "on": { "tags": [ "instrument" ], "bid-ask-spread": { "high-bid": "/number/" } }, "price": "/null/11.00/" } ')
             .applyTo(
