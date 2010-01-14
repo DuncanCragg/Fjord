@@ -167,7 +167,7 @@ function resolve(rhs, bindings){
         var val = bindings[variable];
         rhs=rhs.replace("$"+variable, val, "g");
     }
-    return rhs[0]=='('? eval(rhs): rhs;
+    return rhs[0]=='('? ""+eval(rhs): rhs;
 }
 
 // -----------------------------------------------------------------------

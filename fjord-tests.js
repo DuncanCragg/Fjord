@@ -342,13 +342,12 @@ assertObjectsEqual("Won't rewrite in @linked object",
 
 // -------------------------------------------------------------------
 
-assertObjectsEqual("Instrument price rewrite rule works",
-            new WebObject('{ "tags": [ "bid" ], "on": { "tags": [ "instrument" ], "bid-ask-spread": { "high-bid": "/$hibid;number/" } }, "price": "/null/( $hibid * 1.10 )/" } ')
-            .applyTo(
-            new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } }, "price": "" } ')
-            ),
-            new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } }, "price": "11.00" } ')
-);
+var ins=new WebObject('{ "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@http://a-bank.com/fjord/equity-bid-9ac0d1-88ce1.json" ], "sellers": [ "@http://c-bank.com/fjord/equity-ask-510efb-cca62.json", "@http://d-bank.com/fjord/equity-ask-8560ae-33eff.json" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } }');
+var bid=new WebObject('{ "tags": [ "equity", "bid" ], "on": "@'+ins.uid+'", "price": "" }');
+var rl1=new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "bid-ask-spread": { "high-bid": "/$hibid;number/" } }, "price": "/null/( $hibid * 1.10 )/" }');
+var newbid=rl1.applyTo(bid);
+var expected=new WebObject('{ "tags": [ "equity", "bid" ], "on": "@'+ins.uid+'", "price": "11" }');
+assertObjectsEqual("First Bid rule works", newbid, expected);
 
 // -------------------------------------------------------------------
 
