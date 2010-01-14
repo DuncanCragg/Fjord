@@ -4,6 +4,8 @@ var assert = require('assert');
 
 // -----------------------------------------------------------------------
 
+cache = {};
+
 function WebObject(json){
     if(!json) this.json = {};
     else
@@ -15,6 +17,8 @@ function WebObject(json){
         this.json = json;
     }
     else this.json = {};
+    this.uid = uid();
+    cache[this.uid]=this;
 }
 
 exports.WebObject = WebObject;
@@ -155,6 +159,16 @@ function resolve(rhs, bindings){
         rhs=rhs.replace("$"+variable, val, "g");
     }
     return rhs[0]=='('? eval(rhs): rhs;
+}
+
+// -----------------------------------------------------------------------
+
+function uid() {
+   return (fourHex()+"-"+fourHex()+"-"+fourHex()+"-"+fourHex());
+}
+
+function fourHex() {
+   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
 }
 
 // -----------------------------------------------------------------------
