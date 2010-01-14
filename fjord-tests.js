@@ -297,7 +297,7 @@ assertDeepEqual("Binds to variable and matches further down in list",
 );
 
 assertDeepEqual("Binds to variable above and matches greater than it",
-            new WebObject('{ "a": [ "/number;$x/", [ "/gt($x)/greater/" ] ] }')
+            new WebObject('{ "a": [ "/number;$x/", "/gt($x)/greater/" ] }')
             .applyTo(
             new WebObject('{ "a": [ "3.0", [ "3.0", "3.1",     "0.0", "4.0",     "2.9" ] ] }')),
             new WebObject('{ "a": [ "3.0", [ "3.0", "greater", "0.0", "greater", "2.9" ] ] }')
