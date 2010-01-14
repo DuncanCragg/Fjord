@@ -136,6 +136,7 @@ function slashApply(s1, j2, bindings){
             var close = and.indexOf(')'); if(close == -1) return null;
             var arg = and.substring(3, close);
             if(arg[0]=='$') arg = bindings[arg.substring(1)];
+            if(!arg) return null;
             if(gt && parseFloat(j2) <= parseFloat(arg)) return null;
             if(lt && parseFloat(j2) >= parseFloat(arg)) return null;
             continue;
