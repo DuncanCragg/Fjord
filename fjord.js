@@ -143,7 +143,18 @@ function slashApply(s1, j2, bindings){
         }
         if(!(j2.constructor===String && and==j2)) return null;
     }
-    return rhs? rhs: j2;
+    return rhs? resolve(rhs, bindings): j2;
+}
+
+function resolve(rhs, bindings){
+    var re=/\$[A-Za-z0-9]+/g;
+    var matches;
+    while((matches = re.exec(rhs))!=null){
+        var variable = matches[0].substring(1);
+        var val = bindings[variable];
+        rhs=rhs.replace("$"+variable, val, "g");
+    }
+    return rhs[0]=='('? eval(rhs): rhs;
 }
 
 // -----------------------------------------------------------------------
