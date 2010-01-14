@@ -289,6 +289,20 @@ assertDeepEqual("Matches semicolon list as 'and'",
             new WebObject('{ "a": [ "3.0", "1-3", "1.0" ] }')
 );
 
+assertDeepEqual("Binds to variable and matches further down in list",
+            new WebObject('{ "a": [ "/number;$x/", "/$x/here!/" ] }')
+            .applyTo(
+            new WebObject('{ "a": [ "xxx", "3.0", "xxx", "3.0",   "xxx", "4.0", "xxx", "3.0", "xxx", "3.0" ] }')),
+            new WebObject('{ "a": [ "xxx", "3.0", "xxx", "here!", "xxx", "4.0", "xxx", "3.0", "xxx", "here!" ] }')
+);
+
+assertDeepEqual("Binds to variable above and matches greater than it",
+            new WebObject('{ "a": [ "/number;$x/", [ "/gt($x)/greater/" ] ] }')
+            .applyTo(
+            new WebObject('{ "a": [ "3.0", [ "3.0", "3.1",     "0.0", "4.0",     "2.9" ] ] }')),
+            new WebObject('{ "a": [ "3.0", [ "3.0", "greater", "0.0", "greater", "2.9" ] ] }')
+);
+
 // -------------------------------------------------------------------
 
 assertDeepEqual("Simple instrument example matches",
