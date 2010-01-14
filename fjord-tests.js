@@ -323,7 +323,7 @@ assertObjectsEqual("Uses variable in rewrite",
 var there = new WebObject('{ "there": "1.0" }');
 var thereUID = there.uid;
 assertTrue("WebObject has a UID", thereUID);
-/*
+
 assertObjectsEqual("Jumps @link and matches in another object",
             new WebObject('{ "here": { "there": "/number/" }, "test": "/LHS/RHS/" }')
             .applyTo(
@@ -331,7 +331,15 @@ assertObjectsEqual("Jumps @link and matches in another object",
             ),
             new WebObject('{ "here": "@'+thereUID+'", "test": "RHS" }')
 );
-*/
+
+assertObjectsEqual("Won't rewrite in @linked object",
+            new WebObject('{ "here": { "there": "/number/xxx/" }, "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "here": "@'+thereUID+'", "test": "LHS" }')
+            ),
+            new WebObject('{ "here": "@'+thereUID+'", "test": "RHS" }')
+);
+
 // -------------------------------------------------------------------
 
 assertObjectsEqual("Instrument price rewrite rule works",

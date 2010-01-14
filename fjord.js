@@ -47,10 +47,18 @@ function deepEqual(o1, o2){
 }
 
 function applyTo(j1, j2, bindings){
+    var a2=null;
     var t1=j1? j1.constructor: null;
     var t2=j2? j2.constructor: null;
     if(t1===String && j1[0]=='/') { var r = slashApply(j1, j2, bindings); if(r!=null) return r; }
     if(t1!==Array && t2===Array){ j1=[ j1 ]; t1=Array; }
+    if(t1===Object && t2===String && j2[0]=='@'){
+        var uid2=j2.substring(1);
+        var wo2=cache[uid2];
+        if(!wo2) return null;
+        a2=wo2.json;
+        t2=Object;
+    }
     if(t1!==t2) return null;
     if(t1===Array){
         var j3=null;
@@ -75,12 +83,13 @@ function applyTo(j1, j2, bindings){
     }
     if(t1===Object){
         var j3=null;
+        var y2=a2? a2: j2;
         for(var k in j1){
             var v1 = j1[k];
-            var v2 = j2[k]; if(v2==null) v2="";
-            var v3=applyTo(v1, v2, bindings)
+            var v2 = y2[k]; if(v2==null) v2="";
+            var v3=applyTo(v1, v2, bindings);
             if(v3==null) return null;
-            if(v3==v2) continue;
+            if(v3==v2 || a2) continue;
             if(j3==null) j3=shallowObjectCopy(j2);
             j3[k]=v3;
         }
