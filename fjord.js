@@ -64,7 +64,9 @@ function applyTo(j1, j2, bindings){
         var j3=null;
         var k1=0;
         var onepass=false;
+        var it=0;
         for(var k2=0; k2<j2.length; k2++){
+            bindings.iteration=it;
             var v1 = j1[k1];
             var v2 = j2[k2];
             var v3=applyTo(v1, v2, bindings);
@@ -73,11 +75,13 @@ function applyTo(j1, j2, bindings){
             if(k1==j1.length){
                 onepass=true;
                 k1=0;
+                it++;
             }
             if(v3==v2) continue;
             if(j3==null) j3=shallowArrayCopy(j2);
             j3[k2]=v3;
         }
+        bindings.iteration=null;
         if(!onepass) return null;
         return j3? j3: j2;
     }
@@ -120,10 +124,18 @@ function slashApply(s1, j2, bindings){
         and = ands[i];
         if(and[0]=='$'){
             var variable = and.substring(1);
+            if(variable=='iteration') variable='_iteration';
             var val = bindings[variable];
-            if(!val){ bindings[variable] = j2; val=j2; }
-            else
-            if(val !=j2) return null;
+            var it=bindings.iteration;
+            if(it==null){
+                if(!val){ bindings[variable] = j2; val=bindings[variable]; }
+                else if(val !=j2) return null;
+            }
+            else{
+                if(!val){ bindings[variable] = [ ]; val=bindings[variable]; }
+                if(!val[it]){ val[it] = j2; }
+                else if(val[it] !=j2) return null;
+            }
             continue;
         }
         if(and=='null'){
@@ -165,9 +177,17 @@ function resolve(rhs, bindings){
     while((matches = re.exec(rhs))!=null){
         var variable = matches[0].substring(1);
         var val = bindings[variable];
+        if(val.constructor===Array && val.length==1) val=val[0];
+        if(val.constructor!==String) val=JSON.stringify(val);
         rhs=rhs.replace("$"+variable, val, "g");
     }
-    try{ var rhs=""+eval(rhs); }catch(e){}
+    try{
+        var evaled=eval(rhs);
+        if(evaled.constructor===Array || evaled.constructor===Object){
+            rhs=evaled;
+        }
+        else rhs=""+evaled;
+    }catch(e){}
     return rhs;
 }
 
@@ -185,12 +205,16 @@ function fourHex() {
 
 function max(v){
     if(v.constructor!==Array) return v;
-    return v[0];
+    var max=v[0];
+    for(i=1; i<v.length; i++) if(v[i]>max) max=v[i];
+    return max;
 }
 
 function min(v){
     if(v.constructor!==Array) return v;
-    return v[0];
+    var min=v[0];
+    for(i=1; i<v.length; i++) if(v[i]<min) min=v[i];
+    return min;
 }
 
 // -----------------------------------------------------------------------
