@@ -131,7 +131,7 @@ function slashApply(s1, j2, bindings){
             continue;
         }
         if(and=='number'){
-            if(!/[0-9]*\.[0-9]*/.test(j2)) return null;
+            if(!/[0-9]+[\.]*[0-9]*/.test(j2)) return null;
             continue;
         }
         if(and=='array'){
@@ -167,7 +167,8 @@ function resolve(rhs, bindings){
         var val = bindings[variable];
         rhs=rhs.replace("$"+variable, val, "g");
     }
-    return rhs[0]=='('? ""+eval(rhs): rhs;
+    try{ var rhs=""+eval(rhs); }catch(e){}
+    return rhs;
 }
 
 // -----------------------------------------------------------------------
@@ -178,6 +179,18 @@ function uid() {
 
 function fourHex() {
    return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+}
+
+// -----------------------------------------------------------------------
+
+function max(v){
+    if(v.constructor!==Array) return v;
+    return v[0];
+}
+
+function min(v){
+    if(v.constructor!==Array) return v;
+    return v[0];
 }
 
 // -----------------------------------------------------------------------

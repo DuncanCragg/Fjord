@@ -190,7 +190,7 @@ assertObjectsEqual("Rewrites number inside object",
             .applyTo(
             new WebObject('{ "a": { "b": "11.0", "x": "y" } }')
             ),
-            new WebObject('{ "a": { "b": "12.0", "x": "y" } }')
+            new WebObject('{ "a": { "b": "12", "x": "y" } }')
 );
 
 // -------------------------------------------------------------------
@@ -216,7 +216,7 @@ assertObjectsEqual("Rewrites number inside sub-array item",
             .applyTo(
             new WebObject('{ "a": [ "x", "11.0", "y" ] }')
             ),
-            new WebObject('{ "a": [ "x", "12.0", "y" ] }')
+            new WebObject('{ "a": [ "x", "12", "y" ] }')
 );
 
 assertObjectsEqual("Rewrites on many array items with one element match",
@@ -232,7 +232,7 @@ assertObjectsEqual("Rewrites on an array item with two and a half matches in rot
             .applyTo(
             new WebObject('{ "a": [ "e", "x", "c", "y", "1.0", "z", "c", "y", "2.0", "z", "c", "z" ] }')
             ),
-            new WebObject('{ "a": [ "e", "x", "d", "y", "5.0", "z", "d", "y", "5.0", "z", "d", "z" ] }')
+            new WebObject('{ "a": [ "e", "x", "d", "y", "5", "z", "d", "y", "5", "z", "d", "z" ] }')
 );
 
 assertObjectsEqual("Single item matches its existence in array",
@@ -248,7 +248,7 @@ assertObjectsEqual("Single item matches in array and rewrites it each time",
             .applyTo(
             new WebObject('{ "buyers": [ { "price": "10.0" }, { "price": "none" }, { "price": "11.0" } ], "test": "LHS" }')
             ),
-            new WebObject('{ "buyers": [ { "price": "12.0" }, { "price": "none" }, { "price": "12.0" } ], "test": "RHS" }')
+            new WebObject('{ "buyers": [ { "price": "12" }, { "price": "none" }, { "price": "12" } ], "test": "RHS" }')
 );
 
 // -------------------------------------------------------------------
@@ -287,11 +287,11 @@ assertObjectsEqual("Matches lt and gt - less or greater than",
 );
 
 assertObjectsEqual("Matches semicolon list as 'and'",
-            new WebObject('{ "a": [ "/number;gt(1.0);lt(3.0)/1-3/" ] }')
+            new WebObject('{ "a": [ "/number;gt(1.0);lt(3.0)/1..3/" ] }')
             .applyTo(
             new WebObject('{ "a": [ "3.0", "2.0", "1.0" ] }')
             ),
-            new WebObject('{ "a": [ "3.0", "1-3", "1.0" ] }')
+            new WebObject('{ "a": [ "3.0", "1..3", "1.0" ] }')
 );
 
 assertObjectsEqual("Binds to variable and matches further down in list",
@@ -311,11 +311,11 @@ assertObjectsEqual("Binds to variable above and matches greater than it",
 );
 
 assertObjectsEqual("Uses variable in rewrite",
-            new WebObject('{ "a": [ "/number;$x/", "/gt($x);$y/$y > $x/" ] }')
+            new WebObject('{ "a": [ "/number;$x/", "/gt($x);$y/$y greater than $x/" ] }')
             .applyTo(
             new WebObject('{ "a": [ "2.0", "3.1"       ] }')
             ),
-            new WebObject('{ "a": [ "2.0", "3.1 > 2.0" ] }')
+            new WebObject('{ "a": [ "2.0", "3.1 greater than 2.0" ] }')
 );
 
 // -------------------------------------------------------------------
@@ -342,12 +342,36 @@ assertObjectsEqual("Won't rewrite in @linked object",
 
 // -------------------------------------------------------------------
 
-var ins=new WebObject('{ "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@http://a-bank.com/fjord/equity-bid-9ac0d1-88ce1.json" ], "sellers": [ "@http://c-bank.com/fjord/equity-ask-510efb-cca62.json", "@http://d-bank.com/fjord/equity-ask-8560ae-33eff.json" ], "bid-ask-spread": { "high-bid": "10.00", "low-ask":  "14.00" } }');
-var bid=new WebObject('{ "tags": [ "equity", "bid" ], "on": "@'+ins.uid+'", "price": "" }');
-var rl1=new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "bid-ask-spread": { "high-bid": "/$hibid;number/" } }, "price": "/null/( $hibid * 1.10 )/" }');
-var newbid=rl1.applyTo(bid);
-var expected=new WebObject('{ "tags": [ "equity", "bid" ], "on": "@'+ins.uid+'", "price": "11" }');
-assertObjectsEqual("First Bid rule works", newbid, expected);
+var bidrl1=new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "bid-ask-spread": { "high-bid": "/$hibid;number/" } }, "price": "/null/( $hibid * 1.10 )/" }');
+
+var insrl1=new WebObject('{ "#url": "/$bid/", "tags": [ "equity", "bid" ], "on": { "#url": "/this/", "tags": [ "equity", "instrument" ], "buyers": "/list/has($bid)/" } }');
+
+var insrl2=new WebObject('{ "tags": [ "equity", "instrument" ], "buyers":  { "price": "/$bids;number/" }, "sellers": { "price": "/$asks;number/" }, "bid-ask-spread": { "high-bid": "/number/max($bids)/", "low-ask":  "/number/min($asks)/" } }');
+
+// ---------------
+
+var bidone=new WebObject('{ "tags": [ "equity", "bid" ], "on": "@000-000", "price": "10.00" }');
+var askone=new WebObject('{ "tags": [ "equity", "ask" ], "on": "@000-000", "price": "14.00" }');
+
+var instru=new WebObject('{ "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@'+bidone.uid+'" ], "sellers": [ "@'+askone.uid+'" ], "bid-ask-spread": { "high-bid": "0.0", "low-ask":  "0.0" } }');
+
+var instru=insrl2.applyTo(instru);
+
+assertObjectsEqual("Second Instrument rule works", instru, new WebObject('{ "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@'+bidone.uid+'" ], "sellers": [ "@'+askone.uid+'" ], "bid-ask-spread": { "high-bid": "10", "low-ask":  "14" } }'));
+
+// ---------------
+
+var bidnew=new WebObject('{ "tags": [ "equity", "bid" ], "on": "@'+instru.uid+'", "price": "" }');
+
+var bidnew=bidrl1.applyTo(bidnew);
+
+assertObjectsEqual("First Bid rule works", bidnew, 
+           new WebObject('{ "tags": [ "equity", "bid" ], "on": "@'+instru.uid+'", "price": "11" }'));
+
+// ---------------
+
+//var instru=insrl1.applyTo(instru);
+//var instru=insrl2.applyTo(instru);
 
 // -------------------------------------------------------------------
 
