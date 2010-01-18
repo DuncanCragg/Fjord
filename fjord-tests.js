@@ -9,36 +9,37 @@ var WebObject = fjord.WebObject;
 
 var fails=0;
 function assertTrue(message, condition){
-    sys.puts(message);
+    sys.puts("-------------------\n"+message);
     try{
         assert.ok(condition, message);
         sys.puts("..OK");
     } catch(e) {
-        sys.puts("..FAIL: "+condition); 
+        sys.puts("**FAIL: "+condition); 
         fails++;
     }
     if(fails) sys.puts("FAILs: "+fails);
 }
 
 function assertFalse(message, condition){
-    sys.puts(message);
+    sys.puts("-------------------\n"+message);
     try{
         assert.ok(!condition, message);
         sys.puts("..OK");
     } catch(e) {
-        sys.puts("..FAIL: "+condition); 
+        sys.puts("**FAIL: "+condition); 
         fails++;
     }
     if(fails) sys.puts("FAILs: "+fails);
 }
 
-function assertObjectsEqual(message, o1, o2){
-    sys.puts(message);
+function assertObjectsEqual(message, actual, expected){
+    sys.puts("-------------------\n"+message);
     try{
-        assert.ok(o1.equals(o2), message);
+        assert.ok(actual.equals(expected), message);
+        sys.puts("Result: "+actual); 
         sys.puts("..OK");
     } catch(e) {
-        sys.puts("..FAIL:\n"+o1+"\n---\n"+o2); 
+        sys.puts("**FAIL, expected:\n"+expected+"\n--- got:\n"+actual); 
         fails++;
     }
     if(fails) sys.puts("FAILs: "+fails);
@@ -253,6 +254,20 @@ assertObjectsEqual("Single item matches in array and rewrites it each time",
 
 // -------------------------------------------------------------------
 
+var rule     = new WebObject('{ "from": "/array;$x/", "copy": "/null/$x/" }');
+var before   = new WebObject('{ "from": [ "a", "b" ], "copy": ""          }');
+
+var after = rule.applyTo(before);
+
+var expected = new WebObject('{ "from": [ "a", "b" ], "copy": [ "a", "b" ] }');
+
+assertObjectsEqual("Binding array to rhs makes a copy", after, expected);
+
+assertTrue("Original array left intact after rule applied", after.json.from===before.json.from);
+assertTrue("Using binding of array on rhs copies array",    after.json.copy!==before.json.from);
+
+// -------------------------------------------------------------------
+
 rule = new WebObject('{ "hello": "/bye/world/" }');
 obj  = new WebObject('{ "hello": "" }');
 
@@ -376,6 +391,27 @@ assertObjectsEqual("Match set with one element reduces to that element",
 
 // -------------------------------------------------------------------
 
+var rule     = new WebObject('{ "a": [ "/$x/", "/array/has($x)/" ] }')
+var before   = new WebObject('{ "a": [ "k", [ "j" ] ] }')
+var expected = new WebObject('{ "a": [ "k", [ "j", "k" ] ] }')
+var after    = rule.applyTo(before);
+
+assertObjectsEqual("Adds to array if not there with has()", after, expected);
+
+assertTrue("Web object different even though only changed inside an array", before!==after);
+
+assertObjectsEqual("Won't add again with has() if already there",
+            new WebObject('{ "a": [ "/$x/", "/array/has($x)/" ] }')
+            .applyTo(
+            new WebObject('{ "a": [ "k", [ "j", "k" ] ] }')
+            ),
+            new WebObject('{ "a": [ "k", [ "j", "k" ] ] }')
+);
+
+// -------------------------------------------------------------------
+// -------------------------------------------------------------------
+// -------------------------------------------------------------------
+
 var bidrl1=new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "bid-ask-spread": { "high-bid": "/$hibid;number/" } }, "price": "/null/( $hibid * 1.10 )/" }');
 
 var insrl1=new WebObject('{ "#url": "/$bid/", "tags": [ "equity", "bid" ], "on": { "#url": "/this/", "tags": [ "equity", "instrument" ], "buyers": "/array/has($bid)/" } }');
@@ -409,7 +445,10 @@ assertObjectsEqual("First Bid rule works", bidnew,
 //var instru=insrl2.applyTo(instru);
 
 // -------------------------------------------------------------------
+// -------------------------------------------------------------------
+// -------------------------------------------------------------------
 
 sys.puts('------------------ Tests Done ---------------------');
+sys.puts("Total test fails: "+fails);
 
 

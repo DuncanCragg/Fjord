@@ -77,9 +77,11 @@ function applyTo(j1, j2, bindings){
                 k1=0;
                 it++;
             }
-            if(v3==v2) continue;
-            if(j3==null) j3=shallowArrayCopy(j2);
-            j3[k2]=v3;
+            if(v3.modified || v3!=v2){
+                delete v3.modified;
+                if(j3==null) j3=shallowArrayCopy(j2);
+                j3[k2]=v3;
+            }
         }
         bindings.iteration=null;
         if(!onepass) return null;
@@ -93,9 +95,12 @@ function applyTo(j1, j2, bindings){
             var v2 = y2[k]; if(v2==null) v2="";
             var v3=applyTo(v1, v2, bindings);
             if(v3==null) return null;
-            if(v3==v2 || a2) continue;
-            if(j3==null) j3=shallowObjectCopy(j2);
-            j3[k]=v3;
+            if(a2) continue;
+            if(v3.modified || v3!=v2){
+                delete v3.modified;
+                if(j3==null) j3=shallowObjectCopy(j2);
+                j3[k]=v3;
+            }
         }
         return j3? j3: j2;
     }
@@ -114,12 +119,12 @@ function shallowArrayCopy(arr){
     return r;
 }
 
-function slashApply(s1, j2, bindings){
+function slashApply(s1, lhs, bindings){
     var m  =           s1.indexOf('/',1);
     var e  =(m != -1)? s1.indexOf('/',m+1): -1;
-    var lhs=(m != -1)? s1.substring(1,m): s1.substring(1);
+    var lhm=(m != -1)? s1.substring(1,m): s1.substring(1);
     var rhs=(e != -1)? s1.substring(m+1,e): null; 
-    var ands = lhs.split(';');
+    var ands = lhm.split(';');
     for(var i in ands){
         and = ands[i];
         if(and[0]=='$'){
@@ -128,50 +133,50 @@ function slashApply(s1, j2, bindings){
             var val = bindings[variable];
             var it=bindings.iteration;
             if(it==null){
-                if(!val){ bindings[variable] = j2; val=bindings[variable]; }
-                else if(val !=j2) return null;
+                if(!val){ bindings[variable] = lhs; val=bindings[variable]; }
+                else if(val !=lhs) return null;
             }
             else{
                 if(!val){ bindings[variable] = [ ]; val=bindings[variable]; }
-                if(!val[it]){ val[it] = j2; }
-                else if(val[it] !=j2) return null;
+                if(!val[it]){ val[it] = lhs; }
+                else if(val[it] !=lhs) return null;
             }
             continue;
         }
         if(and=='null'){
-            if(j2.length!=0) return null;
+            if(lhs.length!=0) return null;
             continue;
         }
         if(and=='number'){
-            if(!/[0-9]+[\.]*[0-9]*/.test(j2)) return null;
+            if(!/[0-9]+[\.]*[0-9]*/.test(lhs)) return null;
             continue;
         }
         if(and=='array'){
-            if(j2.constructor!==Array) return null;
+            if(lhs.constructor!==Array) return null;
             continue;
         }
         if(and=='object'){
-            if(j2.constructor!==Object) return null;
+            if(lhs.constructor!==Object) return null;
             continue;
         }
         var lt = and.indexOf('lt(')==0;
         var gt = and.indexOf('gt(')==0;
         if(lt || gt){
-            if(j2.constructor!==String) return null;
+            if(lhs.constructor!==String) return null;
             var close = and.indexOf(')'); if(close == -1) return null;
             var arg = and.substring(3, close);
             if(arg[0]=='$') arg = bindings[arg.substring(1)];
             if(!arg) return null;
-            if(gt && parseFloat(j2) <= parseFloat(arg)) return null;
-            if(lt && parseFloat(j2) >= parseFloat(arg)) return null;
+            if(gt && parseFloat(lhs) <= parseFloat(arg)) return null;
+            if(lt && parseFloat(lhs) >= parseFloat(arg)) return null;
             continue;
         }
-        if(!(j2.constructor===String && and==j2)) return null;
+        if(!(lhs.constructor===String && and==lhs)) return null;
     }
-    return rhs? resolve(rhs, bindings): j2;
+    return rhs? resolve(lhs, rhs, bindings): lhs;
 }
 
-function resolve(rhs, bindings){
+function resolve(lhs, rhs, bindings){
     var re=/\$[A-Za-z0-9]+/g;
     var matches;
     while((matches = re.exec(rhs))!=null){
@@ -181,14 +186,28 @@ function resolve(rhs, bindings){
         if(val.constructor!==String) val=JSON.stringify(val);
         rhs=rhs.replace("$"+variable, val, "g");
     }
-    try{
-        var evaled=eval(rhs);
-        if(evaled.constructor===Array || evaled.constructor===Object){
-            rhs=evaled;
-        }
-        else rhs=""+evaled;
-    }catch(e){}
+    if(rhs.match(/^has\(/)){
+        var arg=rhs.substring(4,rhs.length-1);
+        arg = evaluate(arg);
+        for(i in lhs) if(lhs[i]==arg) return lhs;
+        lhs.push(arg);
+        lhs.modified=true;
+        return lhs;
+    }
+    rhs = evaluate(rhs);
+    rhs.modified=true;
     return rhs;
+}
+
+function evaluate(expression){
+    try{
+        var evaled=eval(expression);
+        if(evaled.constructor===Array || evaled.constructor===Object){
+            expression=evaled;
+        }
+        else expression=""+evaled;
+    }catch(e){}
+    return expression;
 }
 
 // -----------------------------------------------------------------------
