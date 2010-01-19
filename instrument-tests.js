@@ -2,7 +2,7 @@
 var sys   = require('sys');
 var assert = require('assert');
 
-var test = require('./simple-tests');
+var test = require('./simple-test');
 
 var fjord = require('./fjord');
 var WebObject = fjord.WebObject;
@@ -45,6 +45,10 @@ test.objectsEqual("First Bid rule works", bidnew,
 
 // -------------------------------------------------------------------
 
-sys.puts('------------------ Tests Done ---------------------');
+test.summary();
+
+// -------------------------------------------------------------------
+
+
 
 
