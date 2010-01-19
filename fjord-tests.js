@@ -348,6 +348,14 @@ assertObjectsEqual("Uses variable in rewrite",
             new WebObject('{ "a": [ "2.0", "1.0", "3.1 greater than 2.0" ] }')
 );
 
+assertObjectsEqual("Correctly fails to match when tag differs but val is empty",
+            new WebObject('{ "here": { "nowhere": "" }, "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "here": { "there": "1.0" }, "test": "LHS" }')
+            ),
+            new WebObject('{ "here": { "there": "1.0" }, "test": "LHS" }')
+);
+
 // -------------------------------------------------------------------
 
 var there = new WebObject('{ "there": "1.0" }');
@@ -362,12 +370,36 @@ assertObjectsEqual("Jumps @link and matches in another object",
             new WebObject('{ "here": "@'+thereUID+'", "test": "RHS" }')
 );
 
+assertObjectsEqual("Jumps @link and correctly fails to match in another object",
+            new WebObject('{ "here": { "there": "/1.1/" }, "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "here": "@'+thereUID+'", "test": "LHS" }')
+            ),
+            new WebObject('{ "here": "@'+thereUID+'", "test": "LHS" }')
+);
+
 assertObjectsEqual("Won't rewrite in @linked object",
             new WebObject('{ "here": { "there": "/number/xxx/" }, "test": "/LHS/RHS/" }')
             .applyTo(
             new WebObject('{ "here": "@'+thereUID+'", "test": "LHS" }')
             ),
             new WebObject('{ "here": "@'+thereUID+'", "test": "RHS" }')
+);
+
+assertObjectsEqual("Can see sub-object uid by @",
+            new WebObject('{ "here": "/$uid/", "test": "/LHS/$uid/" }')
+            .applyTo(
+            new WebObject('{ "here": "@'+thereUID+'", "test": "LHS" }')
+            ),
+            new WebObject('{ "here": "@'+thereUID+'", "test": "@'+thereUID+'" }')
+);
+
+assertObjectsEqual("Can see sub-object uid by %uid",
+            new WebObject('{ "here": { "%uid": "/$uid/" }, "test": "/LHS/$uid/" }')
+            .applyTo(
+            new WebObject('{ "here": "@'+thereUID+'", "test": "LHS" }')
+            ),
+            new WebObject('{ "here": "@'+thereUID+'", "test": "@'+thereUID+'" }')
 );
 
 // -------------------------------------------------------------------

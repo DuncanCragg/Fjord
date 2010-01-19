@@ -63,6 +63,7 @@ function applyTo(j1, j2, bindings){
         var wo2=cache[uid2];
         if(!wo2) return null;
         a2=wo2.json;
+        a2["%uid"]="@"+uid2;
         t2=Object;
     }
     if(t1!==t2) return null;
@@ -98,9 +99,9 @@ function applyTo(j1, j2, bindings){
         var y2=a2? a2: j2;
         for(var k in j1){
             var v1 = j1[k];
-            var v2 = y2[k]; if(v2==null) v2="";
+            var v2 = y2[k]; if(v2===null) v2="";
             var v3=applyTo(v1, v2, bindings);
-            if(v3==null) return null;
+            if(v3==null){ if(a2) delete a2["%uid"]; return null; }
             if(a2) continue;
             if(v3.modified || v3!=v2){
                 delete v3.modified;
@@ -108,6 +109,7 @@ function applyTo(j1, j2, bindings){
                 j3[k]=v3;
             }
         }
+        if(a2) delete a2["%uid"];
         return j3? j3: j2;
     }
     return j1==j2? j2: null;
