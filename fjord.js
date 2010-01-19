@@ -30,8 +30,14 @@ WebObject.prototype.equals = function(that){
 }
 
 WebObject.prototype.applyTo = function(that){
-    var jr = applyTo(this.json, that.json, {});
-    return jr==null || jr===that.json? that: new WebObject(jr);
+    that.json["%uid"]="@"+that.uid;
+    var bindings = {};
+    var jsonret = applyTo(this.json, that.json, bindings);
+    var wobjret = ((jsonret==null || jsonret===that.json)? that: new WebObject(jsonret));
+    wobjret.uid=that.uid;
+    cache[wobjret.uid]=wobjret;
+    delete wobjret.json["%uid"];
+    return wobjret;
 }
 
 // -----------------------------------------------------------------------
@@ -119,11 +125,11 @@ function shallowArrayCopy(arr){
     return r;
 }
 
-function slashApply(s1, lhs, bindings){
-    var m  =           s1.indexOf('/',1);
-    var e  =(m != -1)? s1.indexOf('/',m+1): -1;
-    var lhm=(m != -1)? s1.substring(1,m): s1.substring(1);
-    var rhs=(e != -1)? s1.substring(m+1,e): null; 
+function slashApply(slashpattern, lhs, bindings){
+    var m  =           slashpattern.indexOf('/',1);
+    var e  =(m != -1)? slashpattern.indexOf('/',m+1): -1;
+    var lhm=(m != -1)? slashpattern.substring(1,m): slashpattern.substring(1);
+    var rhs=(e != -1)? slashpattern.substring(m+1,e): null; 
     var ands = lhm.split(';');
     for(var i in ands){
         and = ands[i];
@@ -132,14 +138,17 @@ function slashApply(s1, lhs, bindings){
             if(variable=='iteration') variable='_iteration';
             var val = bindings[variable];
             var it=bindings.iteration;
-            if(it==null){
+            if(it==undefined || it==null ){
                 if(!val){ bindings[variable] = lhs; val=bindings[variable]; }
-                else if(val !=lhs) return null;
+                else if(val!=lhs) return null;
             }
             else{
                 if(!val){ bindings[variable] = [ ]; val=bindings[variable]; }
-                if(!val[it]){ val[it] = lhs; }
-                else if(val[it] !=lhs) return null;
+                if(val.constructor===Array){
+                    if(!val[it]){ val[it] = lhs; }
+                    else if(val[it]!=lhs) return null;
+                }
+                else if(val!=lhs) return null;
             }
             continue;
         }
@@ -182,6 +191,7 @@ function resolve(lhs, rhs, bindings){
     while((matches = re.exec(rhs))!=null){
         var variable = matches[0].substring(1);
         var val = bindings[variable];
+        if(!val) continue;
         if(val.constructor===Array && val.length==1) val=val[0];
         if(val.constructor!==String) val=JSON.stringify(val);
         rhs=rhs.replace("$"+variable, val, "g");

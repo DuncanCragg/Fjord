@@ -110,6 +110,14 @@ assertObjectsEqual("WebObject with less in array should match one with more",
             new WebObject('{ "a": "b", "c": [ "e", "d", "f", "dd", "g" ], "test": "RHS" }')
 );
 
+assertObjectsEqual("WebObject with more in array should not match one with less",
+            new WebObject('{ "a": "b", "c": [ "d", "f", "dd" ], "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "a": "b", "c": [ "d", "dd" ], "test": "LHS" }')
+            ),
+            new WebObject('{ "a": "b", "c": [ "d", "dd" ], "test": "LHS" }')
+);
+
 assertObjectsEqual("Array elements can be complex",
             new WebObject('{ "a": "b", "c": [ "d", { "dd": "ee" } ], "test": "/LHS/RHS/" }')
             .applyTo(
@@ -269,27 +277,26 @@ assertTrue("Using binding of array on rhs copies array",    after.json.copy!==be
 // -------------------------------------------------------------------
 
 rule = new WebObject('{ "hello": "/bye/world/" }');
-obj  = new WebObject('{ "hello": "" }');
+before  = new WebObject('{ "hello": "" }');
 
-assertTrue("If rule isn't applied, result === target",
-            rule.applyTo(obj)===obj
-);
+after=rule.applyTo(before)
 
+assertTrue("If rule isn't applied, result === target", after===before);
 
 rule = new WebObject('{ "hello": "/null/world/" }');
-obj  = new WebObject('{ "hello": "" }');
 
-assertTrue("If rule is applied, result !== target",
-            rule.applyTo(obj)!==obj
-);
+after=rule.applyTo(before);
 
+assertTrue("If rule is applied, result == target",  after.equals(new WebObject('{ "hello": "world" }')));
+assertTrue("If rule is applied, result !== target", after!==before);
+assertTrue("If rule is applied uid same",           after.uid==before.uid);
 
 rule = new WebObject('{ "hello": "/world/world/" }');
-obj  = new WebObject('{ "hello": "world" }');
 
-assertTrue("If rule is applied but result unchanged, result === target",
-            rule.applyTo(obj)===obj
-);
+after2 = rule.applyTo(after);
+
+assertTrue("If rule is applied but result unchanged, result === target", after2===after);
+assertTrue("If rule is applied uid same",                                after2.uid==after.uid);
 
 // -------------------------------------------------------------------
 
@@ -399,6 +406,7 @@ var after    = rule.applyTo(before);
 assertObjectsEqual("Adds to array if not there with has()", after, expected);
 
 assertTrue("Web object different even though only changed inside an array", before!==after);
+assertTrue("Web object uid same though", before.uid===after.uid);
 
 assertObjectsEqual("Won't add again with has() if already there",
             new WebObject('{ "a": [ "/$x/", "/array/has($x)/" ] }')
@@ -409,12 +417,40 @@ assertObjectsEqual("Won't add again with has() if already there",
 );
 
 // -------------------------------------------------------------------
+
+var rule  =new WebObject('{ "%uid": "/$uid/", "hasuid": "/array/has($uid)/" }');
+var before=new WebObject('{ "hasuid": [ "foo" ], "test": "LHS" }');
+var uid   =before.uid;
+
+var after = rule.applyTo(before);
+
+var expected=new WebObject('{ "hasuid": [ "foo", "@'+uid+'" ], "test": "LHS"  }');
+
+assertObjectsEqual("Can get object uid and put it into an array", after, expected);
+
+var rule2 = new WebObject('{ "hasuid": { "hasuid": { "hasuid": { "hasuid": "foo" } } }, "test": "/LHS/RHS/" }');
+
+var after2 = rule2.applyTo(after);
+
+var expected2=new WebObject('{ "hasuid": [ "foo", "@'+uid+'" ], "test": "RHS"  }');
+
+assertObjectsEqual("Can match self circularly now", after2, expected2);
+
+var rule3  =new WebObject('{ "%uid": "/$uid/", "hasuid": "/$uid/", "test": "/RHS/rhs/" }');
+
+var expected3=new WebObject('{ "hasuid": [ "foo", "@'+uid+'" ], "test": "rhs"  }');
+
+var after3 = rule3.applyTo(after2);
+
+assertObjectsEqual("Can match own uid inside the array", after3, expected3);
+
+// -------------------------------------------------------------------
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
 
 var bidrl1=new WebObject('{ "tags": [ "equity", "bid" ], "on": { "tags": [ "equity", "instrument" ], "bid-ask-spread": { "high-bid": "/$hibid;number/" } }, "price": "/null/( $hibid * 1.10 )/" }');
 
-var insrl1=new WebObject('{ "#url": "/$bid/", "tags": [ "equity", "bid" ], "on": { "#url": "/this/", "tags": [ "equity", "instrument" ], "buyers": "/array/has($bid)/" } }');
+var insrl1=new WebObject('{ "%uid": "/$bid/", "tags": [ "equity", "bid" ], "on": { "%uid": "/this/", "tags": [ "equity", "instrument" ], "buyers": "/array/has($bid)/" } }');
 
 var insrl2=new WebObject('{ "tags": [ "equity", "instrument" ], "buyers":  { "price": "/$bids;number/" }, "sellers": { "price": "/$asks;number/" }, "bid-ask-spread": { "high-bid": "/number/max($bids)/", "low-ask":  "/number/min($asks)/" } }');
 
@@ -424,7 +460,7 @@ var bidone=new WebObject('{ "tags": [ "equity", "bid" ], "on": "@000-000", "pric
 var askone=new WebObject('{ "tags": [ "equity", "ask" ], "on": "@000-000", "price": "15.00" }');
 var asktwo=new WebObject('{ "tags": [ "equity", "ask" ], "on": "@000-000", "price": "14.00" }');
 
-var instru=new WebObject('{ "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@'+bidone.uid+'" ], "sellers": [ "@'+askone.uid+'", "@'+asktwo.uid+'" ], "bid-ask-spread": { "high-bid": "0.0", "low-ask":  "0.0" } }');
+var instru=new WebObject('{ "tags": [ "equity", "instrument" ], "long-name": "Acme Co., Inc", "buyers": [ "@'+bidone.uid+'" ], "sellers": [ "@'+askone.uid+'", "@'+asktwo.uid+'" ], "bid-ask-spread": { "high-bid": "1.0", "low-ask":  "1.0" } }');
 
 var instru=insrl2.applyTo(instru);
 
