@@ -396,6 +396,30 @@ assertObjectsEqual("Match set with one element reduces to that element",
             new WebObject('{ "a": [ "1.5" ], "matchset": "1.5" }')
 );
 
+assertObjectsEqual("Single binding matches a match set",
+            new WebObject('{ "a": [ "/$x/", "/$x/" ], "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "a": [ "c", [ "b", "c", "d" ] ], "test": "LHS" }')
+            ),
+            new WebObject('{ "a": [ "c", [ "b", "c", "d" ] ], "test": "RHS" }')
+);
+
+assertObjectsEqual("Single binding matches a match set",
+            new WebObject('{ "a": [ "/$x/", [ "/$x/" ] ], "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "a": [ "c", [ "b", "c", "d" ] ], "test": "LHS" }')
+            ),
+            new WebObject('{ "a": [ "c", [ "b", "c", "d" ] ], "test": "RHS" }')
+);
+/*
+assertObjectsEqual("Match set binding matches a single value with nested arrays",
+            new WebObject('{ "a": [ [ "/$x/" ], "/$x/" ], "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "a": [ [ "b", "c", "d" ], "c" ], "test": "LHS" }')
+            ),
+            new WebObject('{ "a": [ [ "b", "c", "d" ], "c" ], "test": "RHS" }')
+);
+*/
 // -------------------------------------------------------------------
 
 var rule     = new WebObject('{ "a": [ "/$x/", "/array/has($x)/" ] }')
@@ -428,6 +452,7 @@ var expected=new WebObject('{ "hasuid": [ "foo", "@'+uid+'" ], "test": "LHS"  }'
 
 assertObjectsEqual("Can get object uid and put it into an array", after, expected);
 
+
 var rule2 = new WebObject('{ "hasuid": { "hasuid": { "hasuid": { "hasuid": "foo" } } }, "test": "/LHS/RHS/" }');
 
 var after2 = rule2.applyTo(after);
@@ -436,7 +461,8 @@ var expected2=new WebObject('{ "hasuid": [ "foo", "@'+uid+'" ], "test": "RHS"  }
 
 assertObjectsEqual("Can match self circularly now", after2, expected2);
 
-var rule3  =new WebObject('{ "%uid": "/$uid/", "hasuid": "/$uid/", "test": "/RHS/rhs/" }');
+
+var rule3  =new WebObject('{ "hasuid": "/$uid/", "%uid": "/$uid/", "test": "/RHS/rhs/" }');
 
 var expected3=new WebObject('{ "hasuid": [ "foo", "@'+uid+'" ], "test": "rhs"  }');
 

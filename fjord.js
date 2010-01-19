@@ -140,6 +140,10 @@ function slashApply(slashpattern, lhs, bindings){
             var it=bindings.iteration;
             if(it==undefined || it==null ){
                 if(!val){ bindings[variable] = lhs; val=bindings[variable]; }
+                else
+                if(val.constructor===Array && lhs.constructor!==Array){
+                    if(!isin(val, lhs)) return null;
+                }
                 else if(val!=lhs) return null;
             }
             else{
@@ -191,7 +195,7 @@ function resolve(lhs, rhs, bindings){
     while((matches = re.exec(rhs))!=null){
         var variable = matches[0].substring(1);
         var val = bindings[variable];
-        if(!val) continue;
+        if(!val){ sys.puts("** No binding for $"+variable); continue; }
         if(val.constructor===Array && val.length==1) val=val[0];
         if(val.constructor!==String) val=JSON.stringify(val);
         rhs=rhs.replace("$"+variable, val, "g");
@@ -199,7 +203,8 @@ function resolve(lhs, rhs, bindings){
     if(rhs.match(/^has\(/)){
         var arg=rhs.substring(4,rhs.length-1);
         arg = evaluate(arg);
-        for(i in lhs) if(lhs[i]==arg) return lhs;
+        if(lhs.constructor!==Array) return lhs;
+        if(isin(lhs, arg)) return lhs;
         lhs.push(arg);
         lhs.modified=true;
         return lhs;
@@ -218,6 +223,11 @@ function evaluate(expression){
         else expression=""+evaled;
     }catch(e){}
     return expression;
+}
+
+function isin(arr, item){
+    for(i in arr) if(arr[i]==item) return true;
+    return false;
 }
 
 // -----------------------------------------------------------------------
