@@ -16,11 +16,12 @@ var bidrl1=new WebObject('{ "tags": [ "equity", "bid" ],'+
                          '          "bid-ask-spread": { "high-bid": "/$hibid;number/" } },'+
                          '  "price": "/null/( $hibid * 1.10 )/" }');
 
-var insrl1=new WebObject('{ "%uid": "/$bid/",'+
-                         '  "tags": [ "equity", "bid" ],'+
-                         '  "on": { "%uid": "/this/",'+
-                         '          "tags": [ "equity", "instrument" ],'+
-                         '          "buyers": "/array/has($bid)/" } }');
+var insrl1=new WebObject('{ "%uid": "/$this/",'+
+                         '  "%refs": { "%uid": "/$bid/",'+
+                         '             "tags": [ "equity", "bid" ],'+
+                         '             "on": "/$this/" },'+
+                         '  "tags": [ "equity", "instrument" ],'+
+                         '  "buyers": "/array/has($bid)/" }');
 
 var insrl2=new WebObject('{ "tags": [ "equity", "instrument" ],'+
                          '  "buyers":  { "price": "/$bids;number/" },'+
@@ -40,11 +41,13 @@ var instru=new WebObject('{ "tags": [ "equity", "instrument" ],'+
                          '  "sellers": [ "@'+askone.uid+'", "@'+asktwo.uid+'" ],'+
                          '  "bid-ask-spread": { "high-bid": "1.0", "low-ask":  "1.0" } }');
 
+// ---------------
+
 var instru=insrl2.applyTo(instru);
 
 var expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
                              '  "long-name": "Acme Co., Inc",'+
-                             '  "buyers": [ "@'+bidone.uid+'" ],'+
+                             '  "buyers":  [ "@'+bidone.uid+'" ],'+
                              '  "sellers": [ "@'+askone.uid+'", "@'+asktwo.uid+'" ],'+
                              '  "bid-ask-spread": { "high-bid": "10", "low-ask":  "14.00" } }')
 
@@ -61,8 +64,15 @@ test.objectsEqual("First Bid rule works", bidnew,
 
 // ---------------
 
-//var instru=insrl1.applyTo(instru);
-//var instru=insrl2.applyTo(instru);
+var instru=insrl1.applyTo(instru);
+
+var expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
+                             '  "long-name": "Acme Co., Inc",'+
+                             '  "buyers":  [ "@'+bidone.uid+'", "@'+bidnew.uid+'" ],'+
+                             '  "sellers": [ "@'+askone.uid+'", "@'+asktwo.uid+'" ],'+
+                             '  "bid-ask-spread": { "high-bid": "10", "low-ask":  "14.00" } }')
+
+test.objectsEqual("First Instrument rule works", instru, expected);
 
 // -------------------------------------------------------------------
 

@@ -430,8 +430,7 @@ test.objectsEqual("Match set binding matches a single value with nested arrays",
             ),
             new WebObject('{ "a": [ [ "b", "c", "d" ], "c" ], "test": "RHS" }')
 );
-*/
-/*
+
 test.objectsEqual("Can filter list by greater-than",
             new WebObject('{ "people": { "tags": "/string/",       "age": "/gt(21);$ages/" }, "ages": "/null/$ages/" }')
  //         new WebObject('{ "people": { "tags": "/string;$tags/", "age": "/gt(21);$ages/" }, "ages": "/null/$ages/" }')
@@ -492,6 +491,7 @@ test.objectsEqual("Won't add again with has() if already there",
 // -------------------------------------------------------------------
 
 var rule  =new WebObject('{ "%uid": "/$uid/", "hasuid": "/array/has($uid)/" }');
+
 var before=new WebObject('{ "hasuid": [ "foo" ], "test": "LHS" }');
 var uid   =before.uid;
 

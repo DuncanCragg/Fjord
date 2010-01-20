@@ -6,18 +6,26 @@ var assert = require('assert');
 
 cache = {};
 
-function WebObject(json){
-    if(!json) this.json = {};
-    else
-    if(json.constructor===String){
-        this.json = JSON.parse(json);
-    }
-    else
-    if(json.constructor===Object){
+function WebObject(json, setuid, setrefs){
+    if(setuid){
+        this.uid = setuid;
+        this.refs = setrefs;
         this.json = json;
     }
-    else this.json = {};
-    this.uid = uid();
+    else{
+        this.uid = uid();
+        this.refs = [];
+        if(!json) this.json = {};
+        else
+        if(json.constructor===String){
+            this.json = JSON.parse(json);
+        }
+        else
+        if(json.constructor===Object){
+            this.json = json;
+        }
+        else this.json = {};
+    }
     cache[this.uid]=this;
 }
 
@@ -31,11 +39,10 @@ WebObject.prototype.equals = function(that){
 
 WebObject.prototype.applyTo = function(that){
     that.json["%uid"]="@"+that.uid;
-    var bindings = {};
-    var jsonret = applyTo(this.json, that.json, bindings);
-    var wobjret = ((jsonret==null || jsonret===that.json)? that: new WebObject(jsonret));
-    wobjret.uid=that.uid;
-    cache[wobjret.uid]=wobjret;
+    that.json["%refs"]=that.refs;
+    var jsonret = applyTo(this.json, that.json, { "%uid": "@"+that.uid });
+    var wobjret = ((jsonret==null || jsonret===that.json)? that: new WebObject(jsonret, that.uid, that.refs));
+    delete wobjret.json["%refs"];
     delete wobjret.json["%uid"];
     return wobjret;
 }
@@ -43,6 +50,17 @@ WebObject.prototype.applyTo = function(that){
 // -----------------------------------------------------------------------
 
 WebObject.prototype.toString = function(){ return JSON.stringify(this.json); }
+
+// -----------------------------------------------------------------------
+
+function cacheGET(uid, referer){
+    var wo=cache[uid];
+    if(!wo) return null;
+    if(!isin(wo.refs, referer)) wo.refs.push(referer);
+    j=wo.json;
+    j["%uid"]="@"+uid;
+    return j;
+}
 
 // -----------------------------------------------------------------------
 
@@ -60,10 +78,7 @@ function applyTo(j1, j2, bindings){
     if(t1!==Array && t2===Array){ j1=[ j1 ]; t1=Array; }
     if(t1===Object && t2===String && j2[0]=='@'){
         var uid2=j2.substring(1);
-        var wo2=cache[uid2];
-        if(!wo2) return null;
-        a2=wo2.json;
-        a2["%uid"]="@"+uid2;
+        a2=cacheGET(uid2, bindings["%uid"]);
         t2=Object;
     }
     if(t1!==t2) return null;
