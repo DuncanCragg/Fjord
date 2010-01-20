@@ -115,12 +115,28 @@ test.objectsEqual("Number matches slash-number-slash",
             new WebObject('{ "high-bid": "10.00", "test": "RHS" }')
 );
 
+test.objectsEqual("Number inside string doesn't match slash-number-slash",
+            new WebObject('{ "high-bid": "/number/", "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "high-bid": "xx10.00xx", "test": "LHS" }')
+            ),
+            new WebObject('{ "high-bid": "xx10.00xx", "test": "LHS" }')
+);
+
 test.objectsEqual("Array matches slash-array-slash",
             new WebObject('{ "tags": "/array/", "test": "/LHS/RHS/" }')
             .applyTo(
             new WebObject('{ "tags": [ "equity", "bid" ], "test": "LHS" }')
             ),
             new WebObject('{ "tags": [ "equity", "bid" ], "test": "RHS" }')
+);
+
+test.objectsEqual("String matches slash-string-slash",
+            new WebObject('{ "on": "/string/", "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "on": "rope", "test": "LHS" }')
+            ),
+            new WebObject('{ "on": "rope", "test": "RHS" }')
 );
 
 test.objectsEqual("Object matches slash-object-slash",
@@ -415,6 +431,44 @@ test.objectsEqual("Match set binding matches a single value with nested arrays",
             new WebObject('{ "a": [ [ "b", "c", "d" ], "c" ], "test": "RHS" }')
 );
 */
+/*
+test.objectsEqual("Can filter list by greater-than",
+            new WebObject('{ "people": { "tags": "/string/",       "age": "/gt(21);$ages/" }, "ages": "/null/$ages/" }')
+ //         new WebObject('{ "people": { "tags": "/string;$tags/", "age": "/gt(21);$ages/" }, "ages": "/null/$ages/" }')
+ //         new WebObject('{ "people": { "tags": "/string;$tags/", "age": "/number;$ages/" }, "ages": "/null/$ages/" }')
+            .applyTo(
+            new WebObject('{ "people": [ { "tags": "me20", "age": "20" }, { "tags": "me21", "age": "21" }, { "tags": "me22", "age": "22" }, { "tags": "me23", "age": "23" } ], "ages": "", "tags": "" }')
+            ),
+            new WebObject('{ "people": [ { "tags": "me20", "age": "20" }, { "tags": "me21", "age": "21" }, { "tags": "me22", "age": "22" }, { "tags": "me23", "age": "23" } ], "ages": [ "22", "23" ], "tags": [ "me22", "me23" ] }')
+);
+
+var p1 = new WebObject('{ "tags": "person", "age": "21" }');
+var p2 = new WebObject('{ "tags": "person", "age": "22" }');
+var p3 = new WebObject('{ "tags": "person", "age": "15" }');
+var p4 = new WebObject('{ "tags": "person", "age": "35" }');
+var p5 = new WebObject('{ "tags": "person", "age": "-35" }');
+var p6 = new WebObject('{ "tags": "person", "age": "25" }');
+
+test.objectsEqual("Can get uids and ages of adults from person list",
+            new WebObject('{ "people": { "%uid": "/$uids/", "tags": "person", "age": "/gt(21);$ages/" }, "adults": "/null/$uids/", "ages": "/null/$ages/" }')
+            .applyTo(
+            new WebObject('{ "people": [ "@'+p1.uid+'", "@'+p2.uid+'", "@'+p3.uid+'", "@'+p4.uid+'", "@'+p5.uid+'", "@'+p6.uid+'" ], "ages": "", "adults": "" }')
+            ),
+            new WebObject('{ "people": [ "@'+p1.uid+'", "@'+p2.uid+'", "@'+p3.uid+'", "@'+p4.uid+'", "@'+p5.uid+'", "@'+p6.uid+'" ], "adults": [ "@'+p2.uid+'", "@'+p4.uid+'", "@'+p6.uid+'" ], "ages": [ "22", "35", "25" ] }')
+);
+
+var person1 = new WebObject('{ "tags": "person", "age": "10" }');
+var person2 = new WebObject('{ "tags": "person", "age": "30" }');
+
+test.objectsEqual("Can get uids and ages of adults from person list",
+            new WebObject('{ "people": { "%uid": "/$uids/", "tags": "person", "age": "/number;$ages/" }, "adults": "/null/$uids/", "ages": "/null/$ages/" }')
+            .applyTo(
+            new WebObject('{ "people": [ "@'+person1.uid+'", "@'+person2.uid+'" ], "adults": "", "ages": "" }')
+            ),
+            new WebObject('{ "people": [ "@'+person1.uid+'", "@'+person2.uid+'" ], "adults": [ "@'+person1.uid+'", "@'+person2.uid+'" ], "ages": [ "10", "30" ] }')
+);
+*/
+
 // -------------------------------------------------------------------
 
 var rule     = new WebObject('{ "a": [ "/$x/", "/array/has($x)/" ] }')

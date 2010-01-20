@@ -163,7 +163,7 @@ function slashApply(slashpattern, lhs, bindings){
             continue;
         }
         if(and=='number'){
-            if(!/[0-9]+[\.]*[0-9]*/.test(lhs)) return null;
+            if(!/^[0-9]+[\.]*[0-9]*$/.test(lhs)) return null;
             continue;
         }
         if(and=='array'){
@@ -172,6 +172,10 @@ function slashApply(slashpattern, lhs, bindings){
         }
         if(and=='object'){
             if(lhs.constructor!==Object) return null;
+            continue;
+        }
+        if(and=='string'){
+            if(lhs.constructor!==String) return null;
             continue;
         }
         var lt = and.indexOf('lt(')==0;
