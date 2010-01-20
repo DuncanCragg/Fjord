@@ -519,6 +519,15 @@ var after3 = rule3.applyTo(after2);
 
 test.objectsEqual("Can match own uid inside the array", after3, expected3);
 
+
+var rule4  =new WebObject('{ "%uid": { "%uid": { "hasuid": "@'+uid+'" } }, "test": "/rhs/RHS/" }');
+
+var expected4=new WebObject('{ "hasuid": [ "foo", "@'+uid+'" ], "test": "RHS"  }');
+
+var after4 = rule4.applyTo(after3);
+
+test.objectsEqual("Can delve into %uid to see self", after4, expected4);
+
 // -------------------------------------------------------------------
 
 test.summary();
