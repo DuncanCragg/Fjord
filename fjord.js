@@ -82,56 +82,60 @@ function applyTo(j1, j2, bindings){
         t2=Object;
     }
     if(t1!==t2) return null;
-    if(t1===Array){
-        var j3=null;
-        var k1=0;
-        var onepass=false;
-        var it=0;
-        var ourbind = deeperObjectCopy(bindings);
-        for(var k2=0; k2<j2.length; k2++){
-            ourbind.iteration=it;
-            var v1 = j1[k1];
-            var v2 = j2[k2];
-            var v3=applyTo(v1, v2, ourbind);
-            if(v3==null) continue;
-            k1++;
-            if(k1==j1.length){
-                onepass=true;
-                k1=0;
-                it++;
-            }
-            if(v3.modified || v3!=v2){
-                delete v3.modified;
-                if(j3==null) j3=shallowArrayCopy(j2);
-                j3[k2]=v3;
-            }
-        }
-        mergeBindings(bindings, ourbind);
-        bindings.iteration=null;
-        if(!onepass) return null;
-        return j3? j3: j2;
-    }
-    if(t1===Object){
-        var j3=null;
-        var y2=a2? a2: j2;
-        var ourbind = deeperObjectCopy(bindings);
-        for(var k in j1){
-            var v1 = j1[k];
-            var v2 = y2[k]; if(v2===null) v2="";
-            var v3=applyTo(v1, v2, ourbind);
-            if(v3==null){ if(a2) delete a2["%uid"]; return null; }
-            if(a2) continue;
-            if(v3.modified || v3!=v2){
-                delete v3.modified;
-                if(j3==null) j3=shallowObjectCopy(j2);
-                j3[k]=v3;
-            }
-        }
-        mergeBindings(bindings, ourbind);
-        if(a2) delete a2["%uid"];
-        return j3? j3: j2;
-    }
+    if(t1===Array)  return applyToArray(j1, j2, a2, bindings);
+    if(t1===Object) return applyToObject(j1, j2, a2, bindings);
     return j1==j2? j2: null;
+}
+
+function applyToArray(j1, j2, a2, bindings){
+    var j3=null;
+    var k1=0;
+    var onepass=false;
+    var it=0;
+    var ourbind = deeperObjectCopy(bindings);
+    for(var k2=0; k2<j2.length; k2++){
+        ourbind.iteration=it;
+        var v1 = j1[k1];
+        var v2 = j2[k2];
+        var v3=applyTo(v1, v2, ourbind);
+        if(v3==null) continue;
+        k1++;
+        if(k1==j1.length){
+            onepass=true;
+            k1=0;
+            it++;
+        }
+        if(v3.modified || v3!=v2){
+            delete v3.modified;
+            if(j3==null) j3=shallowArrayCopy(j2);
+            j3[k2]=v3;
+        }
+    }
+    mergeBindings(bindings, ourbind);
+    bindings.iteration=null;
+    if(!onepass) return null;
+    return j3? j3: j2;
+}
+
+function applyToObject(j1, j2, a2, bindings){
+    var j3=null;
+    var y2=a2? a2: j2;
+    var ourbind = deeperObjectCopy(bindings);
+    for(var k in j1){
+        var v1 = j1[k];
+        var v2 = y2[k]; if(v2===null) v2="";
+        var v3=applyTo(v1, v2, ourbind);
+        if(v3==null){ if(a2) delete a2["%uid"]; return null; }
+        if(a2) continue;
+        if(v3.modified || v3!=v2){
+            delete v3.modified;
+            if(j3==null) j3=shallowObjectCopy(j2);
+            j3[k]=v3;
+        }
+    }
+    mergeBindings(bindings, ourbind);
+    if(a2) delete a2["%uid"];
+    return j3? j3: j2;
 }
 
 function shallowObjectCopy(obj){
@@ -175,28 +179,9 @@ function slashApply(slashpattern, lhs, bindings){
     var rhs=(e != -1)? slashpattern.substring(m+1,e): null; 
     var ands = lhm.split(';');
     for(var i in ands){
-        and = ands[i];
+        var and = ands[i];
         if(and[0]=='$'){
-            var variable = and.substring(1);
-            if(variable=='iteration') variable='_iteration';
-            var val = bindings[variable];
-            var it=bindings.iteration;
-            if(it==undefined || it==null ){
-                if(!val){ bindings[variable] = lhs; val=bindings[variable]; }
-                else
-                if(val.constructor===Array && lhs.constructor!==Array){
-                    if(!isin(val, lhs)) return null;
-                }
-                else if(val!=lhs) return null;
-            }
-            else{
-                if(!val){ bindings[variable] = [ ]; val=bindings[variable]; }
-                if(val.constructor===Array){
-                    if(!val[it]){ val[it] = lhs; }
-                    else if(val[it]!=lhs) return null;
-                }
-                else if(val!=lhs) return null;
-            }
+            if(!handleBindings(and, lhs, bindings)) return null;
             continue;
         }
         if(and=='null'){
@@ -236,7 +221,39 @@ function slashApply(slashpattern, lhs, bindings){
     return rhs? resolve(lhs, rhs, bindings): lhs;
 }
 
+function handleBindings(and, lhs, bindings){
+    var variable = and.substring(1);
+    if(variable=='iteration') variable='_iteration';
+    var val = bindings[variable];
+    var it=bindings.iteration;
+    if(it==undefined || it==null ){
+        if(!val){ bindings[variable] = lhs; val=bindings[variable]; }
+        else
+        if(val.constructor===Array && lhs.constructor!==Array){
+            if(!isin(val, lhs)) return false;
+        }
+        else if(val!=lhs) return false;
+    }
+    else{
+        if(!val){ bindings[variable] = [ ]; val=bindings[variable]; }
+        if(val.constructor===Array){
+            if(!val[it]){ val[it] = lhs; }
+            else if(val[it]!=lhs) return false;
+        }
+        else if(val!=lhs) return false;
+    }
+    return true;
+}
+
 function resolve(lhs, rhs, bindings){
+    rhs=resolveBindings(rhs, bindings);
+    if(rhs.match(/^has\(/)) return resolveHas(lhs, rhs);
+    rhs = evaluate(rhs);
+    rhs.modified=true;
+    return rhs;
+}
+
+function resolveBindings(rhs, bindings){
     var re=/\$[A-Za-z0-9]+/g;
     var matches;
     while((matches = re.exec(rhs))!=null){
@@ -247,20 +264,19 @@ function resolve(lhs, rhs, bindings){
         if(val.constructor!==String) val=JSON.stringify(val);
         rhs=rhs.replace("$"+variable, val, "g");
     }
-    if(rhs.match(/^has\(/)){
-        var arg=rhs.substring(4,rhs.length-1);
-        arg = evaluate(arg);
-        if(lhs.constructor!==Array) return lhs;
-        if(arg.constructor!==Array) arg = [ arg ];
-        for(var i in arg){
-            if(!addIfNotIn(lhs, arg[i])) continue;
-            lhs.modified=true;
-        }
-        return lhs;
-    }
-    rhs = evaluate(rhs);
-    rhs.modified=true;
     return rhs;
+}
+
+function resolveHas(lhs, rhs){
+    var arg=rhs.substring(4,rhs.length-1);
+    arg = evaluate(arg);
+    if(lhs.constructor!==Array) return lhs;
+    if(arg.constructor!==Array) arg = [ arg ];
+    for(var i in arg){
+        if(!addIfNotIn(lhs, arg[i])) continue;
+        lhs.modified=true;
+    }
+    return lhs;
 }
 
 function evaluate(expression){
