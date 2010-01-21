@@ -112,10 +112,12 @@ function applyTo(j1, j2, bindings){
     if(t1===Object){
         var j3=null;
         var y2=a2? a2: j2;
+        var ourbind = {};
+        ourbind.iteration = bindings.iteration;
         for(var k in j1){
             var v1 = j1[k];
             var v2 = y2[k]; if(v2===null) v2="";
-            var v3=applyTo(v1, v2, bindings);
+            var v3=applyTo(v1, v2, ourbind);
             if(v3==null){ if(a2) delete a2["%uid"]; return null; }
             if(a2) continue;
             if(v3.modified || v3!=v2){
@@ -124,6 +126,7 @@ function applyTo(j1, j2, bindings){
                 j3[k]=v3;
             }
         }
+        mergeBindings(bindings, ourbind);
         if(a2) delete a2["%uid"];
         return j3? j3: j2;
     }
@@ -140,6 +143,19 @@ function shallowArrayCopy(arr){
     r = [];
     for(var k in arr) r[k] = arr[k];
     return r;
+}
+
+function mergeBindings(o1, o2){
+    for(var k in o2){
+        if(k=='iteration') continue;
+        if(o1[k] && o1[k].constructor===Array){
+            if(o2[k].constructor===Array){
+                for(var l in o2[k]) o1[k].push(o2[k][l]);
+            }
+            else o1[k].push(o2[k]);
+        }
+        else o1[k] = o2[k];
+    }
 }
 
 function slashApply(slashpattern, lhs, bindings){
@@ -225,9 +241,12 @@ function resolve(lhs, rhs, bindings){
         var arg=rhs.substring(4,rhs.length-1);
         arg = evaluate(arg);
         if(lhs.constructor!==Array) return lhs;
-        if(isin(lhs, arg)) return lhs;
-        lhs.push(arg);
-        lhs.modified=true;
+        if(arg.constructor!==Array) arg = [ arg ];
+        for(var i in arg){
+            if(isin(lhs, arg[i])) continue;
+            lhs.push(arg[i]);
+            lhs.modified=true;
+        }
         return lhs;
     }
     rhs = evaluate(rhs);
@@ -247,7 +266,7 @@ function evaluate(expression){
 }
 
 function isin(arr, item){
-    for(i in arr) if(arr[i]==item) return true;
+    for(var i in arr) if(arr[i]==item) return true;
     return false;
 }
 
@@ -266,14 +285,14 @@ function fourHex() {
 function max(v){
     if(v.constructor!==Array) return v;
     var max=v[0];
-    for(i=1; i<v.length; i++) if(v[i]>max) max=v[i];
+    for(var i=1; i<v.length; i++) if(v[i]>max) max=v[i];
     return max;
 }
 
 function min(v){
     if(v.constructor!==Array) return v;
     var min=v[0];
-    for(i=1; i<v.length; i++) if(v[i]<min) min=v[i];
+    for(var i=1; i<v.length; i++) if(v[i]<min) min=v[i];
     return min;
 }
 

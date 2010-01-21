@@ -391,6 +391,39 @@ test.objectsEqual("Creates match set when binding inside array",
             new WebObject('{ "a": [ { "b": "1.5" }, { "b": "2.5" } ], "test": [ "1.5", "2.5" ] }')
 );
 
+test.objectsEqual("Creates match set when binding inside array with match failures",
+            new WebObject('{ "a": { "b": "/number;$matchset/" }, "test": "/null/$matchset/" }')
+            .applyTo(
+            new WebObject('{ "a": [ { "b": "1.5" }, { "b": "hi" }, { "b": "2.5" } ], "test": "" }')
+            ),
+            new WebObject('{ "a": [ { "b": "1.5" }, { "b": "hi" }, { "b": "2.5" } ], "test": [ "1.5", "2.5" ] }')
+);
+
+test.objectsEqual("Creates match set when binding inside array with match failures and bind before fail",
+            new WebObject('{ "a": { "b": "/$matchset;number/" }, "test": "/null/$matchset/" }')
+            .applyTo(
+            new WebObject('{ "a": [ { "b": "1.5" }, { "b": "hi" }, { "b": "2.5" } ], "test": "" }')
+            ),
+            new WebObject('{ "a": [ { "b": "1.5" }, { "b": "hi" }, { "b": "2.5" } ], "test": [ "1.5", "2.5" ] }')
+);
+/*
+test.objectsEqual("Creates match set when binding inside array with match failures and bind before fail in array",
+            new WebObject('{ "a": [ "/$matchset/", "/number/" ], "test": "/null/$matchset/" }')
+            .applyTo(
+            new WebObject('{ "a": [ [ "in1", "1.5" ], [ "out", "hi" ], [ "in2", "2.5" ] ], "test": "" }')
+            ),
+            new WebObject('{ "a": [ [ "in1", "1.5" ], [ "out", "hi" ], [ "in2", "2.5" ] ], "test": [ "in1", "in2" ] }')
+);
+*/
+/*
+test.objectsEqual("Match set binding matches a single value with nested arrays",
+            new WebObject('{ "a": [ [ "/$x/" ], "/$x/" ], "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "a": [ [ "b", "c", "d" ], "c" ], "test": "LHS" }')
+            ),
+            new WebObject('{ "a": [ [ "b", "c", "d" ], "c" ], "test": "RHS" }')
+);
+*/
 test.objectsEqual("Can get min and max of a match set",
             new WebObject('{ "a": "/number;$matchset/", "min": "/null/min($matchset)/", "max": "/null/max($matchset)/" }')
             .applyTo(
@@ -422,24 +455,45 @@ test.objectsEqual("Single binding matches a match set",
             ),
             new WebObject('{ "a": [ "c", [ "b", "c", "d" ] ], "test": "RHS" }')
 );
-/*
-test.objectsEqual("Match set binding matches a single value with nested arrays",
-            new WebObject('{ "a": [ [ "/$x/" ], "/$x/" ], "test": "/LHS/RHS/" }')
-            .applyTo(
-            new WebObject('{ "a": [ [ "b", "c", "d" ], "c" ], "test": "LHS" }')
-            ),
-            new WebObject('{ "a": [ [ "b", "c", "d" ], "c" ], "test": "RHS" }')
-);
 
-test.objectsEqual("Can filter list by greater-than",
-            new WebObject('{ "people": { "tags": "/string/",       "age": "/gt(21);$ages/" }, "ages": "/null/$ages/" }')
- //         new WebObject('{ "people": { "tags": "/string;$tags/", "age": "/gt(21);$ages/" }, "ages": "/null/$ages/" }')
- //         new WebObject('{ "people": { "tags": "/string;$tags/", "age": "/number;$ages/" }, "ages": "/null/$ages/" }')
+// -------------------------------------------------------------------
+
+r1=new WebObject('{ "r": { "n": "/$x/", "tags": [ "x" ] },'+
+                 '  "xs": "/array/has($x)/" }');
+
+r2=new WebObject('{ "r": { "n": "/$y/", "tags": [ "y" ] },'+
+                 '  "ys": "/array/has($y)/" }');
+
+ob=new WebObject('{ "r": [ { "n": "111", "tags": [ "x" ] },'+
+                 '         { "n": "222", "tags": [ "y" ] },'+
+                 '         { "n": "333", "tags": [ "x" ] },'+
+                 '         { "n": "444", "tags": [ "y" ] } ],'+
+                 '  "xs": [ ],'+
+                 '  "ys": [ ] }');
+
+ob=r1.applyTo(ob);
+ob=r2.applyTo(ob);
+
+expected = new WebObject('{ "r": [ { "n": "111", "tags": [ "x" ] },'+
+                         '         { "n": "222", "tags": [ "y" ] },'+
+                         '         { "n": "333", "tags": [ "x" ] },'+
+                         '         { "n": "444", "tags": [ "y" ] } ],'+
+                         '  "xs": [ "111", "333" ],'+
+                         '  "ys": [ "222", "444" ] }');
+
+test.objectsEqual("Can bind to filtered match set", ob, expected);
+
+// -------------------------------------------------------------------
+
+test.objectsEqual("Can filter list by greater-than and bindings before failure",
+            new WebObject('{ "people": { "tags": "/$tags;string/", "age": "/$ages;gt(21)/" }, "ages": "/null/$ages/", "tags": "/null/$tags/" }')
             .applyTo(
             new WebObject('{ "people": [ { "tags": "me20", "age": "20" }, { "tags": "me21", "age": "21" }, { "tags": "me22", "age": "22" }, { "tags": "me23", "age": "23" } ], "ages": "", "tags": "" }')
             ),
             new WebObject('{ "people": [ { "tags": "me20", "age": "20" }, { "tags": "me21", "age": "21" }, { "tags": "me22", "age": "22" }, { "tags": "me23", "age": "23" } ], "ages": [ "22", "23" ], "tags": [ "me22", "me23" ] }')
 );
+
+// -------------------------------------------------------------------
 
 var p1 = new WebObject('{ "tags": "person", "age": "21" }');
 var p2 = new WebObject('{ "tags": "person", "age": "22" }');
@@ -455,18 +509,6 @@ test.objectsEqual("Can get uids and ages of adults from person list",
             ),
             new WebObject('{ "people": [ "@'+p1.uid+'", "@'+p2.uid+'", "@'+p3.uid+'", "@'+p4.uid+'", "@'+p5.uid+'", "@'+p6.uid+'" ], "adults": [ "@'+p2.uid+'", "@'+p4.uid+'", "@'+p6.uid+'" ], "ages": [ "22", "35", "25" ] }')
 );
-
-var person1 = new WebObject('{ "tags": "person", "age": "10" }');
-var person2 = new WebObject('{ "tags": "person", "age": "30" }');
-
-test.objectsEqual("Can get uids and ages of adults from person list",
-            new WebObject('{ "people": { "%uid": "/$uids/", "tags": "person", "age": "/number;$ages/" }, "adults": "/null/$uids/", "ages": "/null/$ages/" }')
-            .applyTo(
-            new WebObject('{ "people": [ "@'+person1.uid+'", "@'+person2.uid+'" ], "adults": "", "ages": "" }')
-            ),
-            new WebObject('{ "people": [ "@'+person1.uid+'", "@'+person2.uid+'" ], "adults": [ "@'+person1.uid+'", "@'+person2.uid+'" ], "ages": [ "10", "30" ] }')
-);
-*/
 
 // -------------------------------------------------------------------
 

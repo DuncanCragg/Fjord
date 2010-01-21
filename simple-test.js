@@ -13,7 +13,7 @@ function isTrue(message, condition){
         sys.puts("..OK");
         oks++;
     } catch(e) {
-        sys.puts("**FAIL: "+condition); 
+        sys.puts("** FAIL: "+condition); 
         fails++;
         faildescriptions.push(message);
     }
@@ -27,7 +27,7 @@ function isFalse(message, condition){
         sys.puts("..OK");
         oks++;
     } catch(e) {
-        sys.puts("**FAIL: "+condition); 
+        sys.puts("** FAIL: "+condition); 
         fails++;
         faildescriptions.push(message);
     }
@@ -42,7 +42,7 @@ function objectsEqual(message, actual, expected){
         sys.puts("..OK");
         oks++;
     } catch(e) {
-        sys.puts("**FAIL, expected:\n"+expected+"\n--- got:\n"+actual); 
+        sys.puts("** FAIL, expected:\n"+expected+"\n--- got:\n"+actual); 
         fails++;
         faildescriptions.push(message);
     }
@@ -54,9 +54,8 @@ function summary(){
     sys.puts("Pass: "+oks+", Fail: "+fails);
     sys.puts('---------------------------------------------------');
     if(faildescriptions.length){
-    sys.puts('Failed tests:');
     for(i in faildescriptions){
-    sys.puts(" - "+faildescriptions[i]);
+    sys.puts("** FAIL: "+faildescriptions[i]);
     }
     sys.puts('---------------------------------------------------');
     }
