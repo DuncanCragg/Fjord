@@ -9,7 +9,7 @@ Fjord is a language for expressing domain logic as match-rewrite functions over 
 
 run tests:
 
-$ node fjord-tests.js
+$ node language-tests.js
 
 
 

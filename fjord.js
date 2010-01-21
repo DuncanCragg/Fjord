@@ -56,7 +56,7 @@ WebObject.prototype.toString = function(){ return JSON.stringify(this.json); }
 function cacheGET(uid, referer){
     var wo=cache[uid];
     if(!wo) return null;
-    if(!isin(wo.refs, referer)) wo.refs.push(referer);
+    addIfNotIn(wo.refs, referer);
     j=wo.json;
     j["%uid"]="@"+uid;
     return j;
@@ -87,11 +87,12 @@ function applyTo(j1, j2, bindings){
         var k1=0;
         var onepass=false;
         var it=0;
+        var ourbind = deeperObjectCopy(bindings);
         for(var k2=0; k2<j2.length; k2++){
-            bindings.iteration=it;
+            ourbind.iteration=it;
             var v1 = j1[k1];
             var v2 = j2[k2];
-            var v3=applyTo(v1, v2, bindings);
+            var v3=applyTo(v1, v2, ourbind);
             if(v3==null) continue;
             k1++;
             if(k1==j1.length){
@@ -105,6 +106,7 @@ function applyTo(j1, j2, bindings){
                 j3[k2]=v3;
             }
         }
+        mergeBindings(bindings, ourbind);
         bindings.iteration=null;
         if(!onepass) return null;
         return j3? j3: j2;
@@ -112,8 +114,7 @@ function applyTo(j1, j2, bindings){
     if(t1===Object){
         var j3=null;
         var y2=a2? a2: j2;
-        var ourbind = {};
-        ourbind.iteration = bindings.iteration;
+        var ourbind = deeperObjectCopy(bindings);
         for(var k in j1){
             var v1 = j1[k];
             var v2 = y2[k]; if(v2===null) v2="";
@@ -134,14 +135,23 @@ function applyTo(j1, j2, bindings){
 }
 
 function shallowObjectCopy(obj){
-    r = {};
+    var r = {};
     for(var k in obj) r[k] = obj[k];
     return r;
 }
 
 function shallowArrayCopy(arr){
-    r = [];
+    var r = [];
     for(var k in arr) r[k] = arr[k];
+    return r;
+}
+
+function deeperObjectCopy(obj){
+    var r = {};
+    for(var k in obj){
+        if(obj[k] && obj[k].constructor===Array) r[k] = shallowArrayCopy(obj[k]);
+        else r[k] = obj[k];
+    }
     return r;
 }
 
@@ -150,9 +160,9 @@ function mergeBindings(o1, o2){
         if(k=='iteration') continue;
         if(o1[k] && o1[k].constructor===Array){
             if(o2[k].constructor===Array){
-                for(var l in o2[k]) o1[k].push(o2[k][l]);
+                for(var l in o2[k]) addIfNotIn(o1[k], o2[k][l]);
             }
-            else o1[k].push(o2[k]);
+            else addIfNotIn(o1[k], o2[k]);
         }
         else o1[k] = o2[k];
     }
@@ -243,8 +253,7 @@ function resolve(lhs, rhs, bindings){
         if(lhs.constructor!==Array) return lhs;
         if(arg.constructor!==Array) arg = [ arg ];
         for(var i in arg){
-            if(isin(lhs, arg[i])) continue;
-            lhs.push(arg[i]);
+            if(!addIfNotIn(lhs, arg[i])) continue;
             lhs.modified=true;
         }
         return lhs;
@@ -267,6 +276,11 @@ function evaluate(expression){
 
 function isin(arr, item){
     for(var i in arr) if(arr[i]==item) return true;
+    return false;
+}
+
+function addIfNotIn(arr, item){
+    if(!isin(arr, item)){ arr.push(item); return true; }
     return false;
 }
 
@@ -294,6 +308,12 @@ function min(v){
     var min=v[0];
     for(var i=1; i<v.length; i++) if(v[i]<min) min=v[i];
     return min;
+}
+
+// -----------------------------------------------------------------------
+
+function log(message, value){
+    sys.puts(message+JSON.stringify(value));
 }
 
 // -----------------------------------------------------------------------
