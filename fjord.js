@@ -7,7 +7,7 @@ var assert = require('assert');
 var Cache = { "notifyqueue": [] };
 
 Cache.notify = function(o){
-    this.notifyqueue.push(o);
+    addIfNotIn(this.notifyqueue, o);
 }
 
 Cache.runRulesOnNotifiedObjects = function(){
@@ -49,8 +49,10 @@ function WebObject(json, rules, setuid, setrefs){
 
 WebObject.create = function(json, rules, setuid, setrefs){
     var o = new WebObject(json, rules, setuid, setrefs);
-    Cache.notify(o);
-    Cache.runRulesOnNotifiedObjects();
+    if(rules){
+        Cache.notify(o);
+        Cache.runRulesOnNotifiedObjects();
+    }
     return o.uid;
 }
 
