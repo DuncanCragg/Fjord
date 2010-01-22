@@ -4,15 +4,33 @@ var assert = require('assert');
 
 // -----------------------------------------------------------------------
 
-cache = {};
+var Cache = { "notifyqueue": [] };
 
-function WebObject(json, setuid, setrefs){
+Cache.notify = function(o){
+    this.notifyqueue.push(o);
+}
+
+Cache.runRulesOnNotifiedObjects = function(){
+    while(this.notifyqueue.length){
+        var nq = this.notifyqueue;
+        this.notifyqueue=[];
+        for(var i in nq) nq[i].runRules();
+    }
+}
+
+exports.Cache = Cache;
+
+// -----------------------------------------------------------------------
+
+function WebObject(json, rules, setuid, setrefs){
     if(setuid){
+        this.rules = rules;
         this.uid = setuid;
         this.refs = setrefs;
         this.json = json;
     }
     else{
+        this.rules = rules;
         this.uid = uid();
         this.refs = [];
         if(!json) this.json = {};
@@ -26,7 +44,14 @@ function WebObject(json, setuid, setrefs){
         }
         else this.json = {};
     }
-    cache[this.uid]=this;
+    Cache[this.uid]=this;
+}
+
+WebObject.create = function(json, rules, setuid, setrefs){
+    var o = new WebObject(json, rules, setuid, setrefs);
+    Cache.notify(o);
+    Cache.runRulesOnNotifiedObjects();
+    return o.uid;
 }
 
 exports.WebObject = WebObject;
@@ -41,13 +66,25 @@ WebObject.prototype.applyTo = function(that){
     that.json["%uid"]="@"+that.uid;
     that.json["%refs"]=that.refs;
     var jsonret = applyTo(this.json, that.json, { "%uid": "@"+that.uid });
-    var wobjret = ((jsonret==null || jsonret===that.json)? that: new WebObject(jsonret, that.uid, that.refs));
+    var wobjret = ((jsonret==null || jsonret===that.json)? that: new WebObject(jsonret, that.rules, that.uid, that.refs));
     delete wobjret.json["%refs"];
     delete wobjret.json["%uid"];
     return wobjret;
 }
 
 WebObject.prototype.apply = function(rule){ return rule.applyTo(this); }
+
+WebObject.prototype.runRules = function(){
+    if(!this.rules) return;
+    var orig = this;
+    for(var i in this.rules) Cache[this.rules[i]].applyTo(Cache[this.uid]);
+    var curr = Cache[this.uid];
+    if(curr !== orig) curr.notifyRefs();
+}
+
+WebObject.prototype.notifyRefs = function(){
+    for(var i in this.refs) Cache.notify(Cache[this.refs[i].substring(1)]);
+}
 
 // -----------------------------------------------------------------------
 
@@ -56,10 +93,10 @@ WebObject.prototype.toString = function(){ return JSON.stringify(this.json); }
 // -----------------------------------------------------------------------
 
 function cacheGET(uid, referer){
-    var wo=cache[uid];
-    if(!wo) return null;
-    addIfNotIn(wo.refs, referer);
-    j=wo.json;
+    var o=Cache[uid];
+    if(!o) return null;
+    if(addIfNotIn(o.refs, referer)) Cache.notify(o);
+    j=o.json;
     j["%uid"]="@"+uid;
     return j;
 }
