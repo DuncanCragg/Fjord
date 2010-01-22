@@ -41,6 +41,20 @@ insrl3=new WebObject('{ "tags": [ "equity", "instrument" ],'+
                      '  "bid-ask-spread": { "high-bid": "/number/max($bids)/",'+
                      '                      "low-ask":  "/number/min($asks)/" } }');
 
+insrl4=new WebObject('{ "%uid": "/$this/",'+
+                     '  "%refs": { "tags": [ "equity", "bid" ],'+
+                     '             "on": "/$this/",'+
+                     '             "price": "/$bids;number/" },'+
+                     '  "tags": [ "equity", "instrument" ],'+
+                     '  "bid-ask-spread": { "high-bid": "/number/max($bids)/" } }');
+
+insrl5=new WebObject('{ "%uid": "/$this/",'+
+                     '  "%refs": { "tags": [ "equity", "ask" ],'+
+                     '             "on": "/$this/",'+
+                     '             "price": "/$asks;number/" },'+
+                     '  "tags": [ "equity", "instrument" ],'+
+                     '  "bid-ask-spread": { "low-ask": "/number/min($asks)/" } }');
+
 // ---------------
 
 instru=new WebObject('{ "tags": [ "equity", "instrument" ],'+
@@ -126,6 +140,16 @@ expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
                          '  "bid-ask-spread": { "high-bid": "12.100000000000001", "low-ask":  "16.2" } }')
 
 test.objectsEqual("Third Instrument rule works on second bid/ask", instru, expected);
+
+// -------------------------------------------------------------------
+
+instru=instru.apply(new WebObject('{ "bid-ask-spread": { "high-bid": "/number/0/" } }'));
+instru=instru.apply(new WebObject('{ "bid-ask-spread": { "low-ask":  "/number/0/" } }'));
+
+instru=insrl4.applyTo(instru);
+instru=insrl5.applyTo(instru);
+
+fjord.log("instru=",instru);
 
 // -------------------------------------------------------------------
 

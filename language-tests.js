@@ -481,7 +481,34 @@ expected = new WebObject('{ "r": [ { "n": "111", "tags": [ "x" ] },'+
                          '  "xs": [ "111", "333" ],'+
                          '  "ys": [ "222", "444" ] }');
 
-test.objectsEqual("Can bind to filtered match set", ob, expected);
+test.objectsEqual("Can bind to filtered match set with bind before filter", ob, expected);
+
+// -------------------------------------------------------------------
+
+r1=new WebObject('{ "r": { "tags": [ "x" ], "n": "/$x/" },'+
+                 '  "xs": "/array/has($x)/" }');
+
+r2=new WebObject('{ "r": { "tags": [ "y" ], "n": "/$y/" },'+
+                 '  "ys": "/array/has($y)/" }');
+
+ob=new WebObject('{ "r": [ { "n": "111", "tags": [ "x" ] },'+
+                 '         { "n": "222", "tags": [ "y" ] },'+
+                 '         { "n": "333", "tags": [ "x" ] },'+
+                 '         { "n": "444", "tags": [ "y" ] } ],'+
+                 '  "xs": [ ],'+
+                 '  "ys": [ ] }');
+
+ob=r1.applyTo(ob);
+ob=r2.applyTo(ob);
+
+expected = new WebObject('{ "r": [ { "n": "111", "tags": [ "x" ] },'+
+                         '         { "n": "222", "tags": [ "y" ] },'+
+                         '         { "n": "333", "tags": [ "x" ] },'+
+                         '         { "n": "444", "tags": [ "y" ] } ],'+
+                         '  "xs": [ "111", "333" ],'+
+                         '  "ys": [ "222", "444" ] }');
+                     
+test.objectsEqual("Can bind to filtered match set with filter before bind", ob, expected);
 
 // -------------------------------------------------------------------
 

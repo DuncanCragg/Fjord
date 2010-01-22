@@ -47,6 +47,8 @@ WebObject.prototype.applyTo = function(that){
     return wobjret;
 }
 
+WebObject.prototype.apply = function(rule){ return rule.applyTo(this); }
+
 // -----------------------------------------------------------------------
 
 WebObject.prototype.toString = function(){ return JSON.stringify(this.json); }
@@ -92,6 +94,7 @@ function applyToArray(j1, j2, a2, bindings){
     var k1=0;
     var onepass=false;
     var it=0;
+    var previt=bindings.iteration;
     var ourbind = deeperObjectCopy(bindings);
     for(var k2=0; k2<j2.length; k2++){
         ourbind.iteration=it;
@@ -112,7 +115,7 @@ function applyToArray(j1, j2, a2, bindings){
         }
     }
     mergeBindings(bindings, ourbind);
-    bindings.iteration=null;
+    bindings.iteration=previt;
     if(!onepass) return null;
     return j3? j3: j2;
 }
@@ -331,6 +334,8 @@ function min(v){
 function log(message, value){
     sys.puts(message+JSON.stringify(value));
 }
+
+exports.log = log;
 
 // -----------------------------------------------------------------------
 
