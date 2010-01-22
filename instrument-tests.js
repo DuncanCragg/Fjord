@@ -146,10 +146,24 @@ test.objectsEqual("Third Instrument rule works on second bid/ask", instru, expec
 instru=instru.apply(new WebObject('{ "bid-ask-spread": { "high-bid": "/number/0/" } }'));
 instru=instru.apply(new WebObject('{ "bid-ask-spread": { "low-ask":  "/number/0/" } }'));
 
+expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
+                         '  "long-name": "Acme Co., Inc",'+
+                         '  "buyers":  [ "@'+bidone.uid+'", "@'+bidtwo.uid+'" ],'+
+                         '  "sellers": [ "@'+askone.uid+'", "@'+asktwo.uid+'" ],'+
+                         '  "bid-ask-spread": { "high-bid": "0", "low-ask":  "0" } }')
+
+test.objectsEqual("Spread reset to zero", instru, expected);
+
 instru=insrl4.applyTo(instru);
 instru=insrl5.applyTo(instru);
 
-fjord.log("instru=",instru);
+expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
+                         '  "long-name": "Acme Co., Inc",'+
+                         '  "buyers":  [ "@'+bidone.uid+'", "@'+bidtwo.uid+'" ],'+
+                         '  "sellers": [ "@'+askone.uid+'", "@'+asktwo.uid+'" ],'+
+                         '  "bid-ask-spread": { "high-bid": "12.100000000000001", "low-ask":  "16.2" } }')
+
+test.objectsEqual("Fourth/Fifth Instrument rules work - alternative approach", instru, expected);
 
 // -------------------------------------------------------------------
 
