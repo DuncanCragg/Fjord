@@ -169,10 +169,6 @@ test.objectsEqual("Fourth/Fifth Instrument rules work - alternative approach", i
 
 // -------------------------------------------------------------------
 
-Cache.notifyqueue = [];
-
-// -------------------------------------------------------------------
-
 instrule1=WebObject.create('{ "tags": [ "equity", "instrument" ],'+
                            '  "%owid": "/$this/",'+
                            '  "%refs": { "tags": [ "equity", "bid" ],'+
