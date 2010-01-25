@@ -195,6 +195,8 @@ instrule4=WebObject.create('{ "tags": [ "equity", "instrument" ],'+
                            '  "sellers": { "price": "/$asks;number/" },'+
                            '  "bid-ask-spread": { "low-ask":  "/number/min($asks)/" } }');
 
+// ---------------
+
 instrument=WebObject.create('{ "tags": [ "equity", "instrument" ],'+
                             '  "long-name": "Acme Co., Inc",'+
                             '  "buyers": [ ],'+
@@ -214,10 +216,14 @@ askrule=WebObject.create('{ "tags": [ "equity", "ask" ],'+
                          '          "bid-ask-spread": { "low-ask": "/$loask;number/" } },'+
                          '  "price": "/null/( $loask * 0.90 )/" }');
 
+// ---------------
+
 bid1=WebObject.create('{ "tags": [ "equity", "bid" ], "on": "@'+instrument+'", "price": "" }', [ bidrule ]);
 bid2=WebObject.create('{ "tags": [ "equity", "bid" ], "on": "@'+instrument+'", "price": "" }', [ bidrule ]);
 ask1=WebObject.create('{ "tags": [ "equity", "ask" ], "on": "@'+instrument+'", "price": "" }', [ askrule ]);
 ask2=WebObject.create('{ "tags": [ "equity", "ask" ], "on": "@'+instrument+'", "price": "" }', [ askrule ]);
+
+// ---------------
 
 expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
                          '  "long-name": "Acme Co., Inc",'+

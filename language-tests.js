@@ -155,6 +155,30 @@ test.objectsEqual("Reserved word 'null' doesn't match literally",
             new WebObject('{ "price": "null", "test": "LHS" }')
 );
 
+test.objectsEqual("Empty match matches anything",
+            new WebObject('{ "price": "/;;/", "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "price": "anything", "test": "LHS" }')
+            ),
+            new WebObject('{ "price": "anything", "test": "RHS" }')
+);
+
+test.objectsEqual("Can use JS regular expressions to match",
+            new WebObject('{ "price": "/any[th]*ing/", "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "price": "anything", "test": "LHS" }')
+            ),
+            new WebObject('{ "price": "anything", "test": "RHS" }')
+);
+
+test.objectsEqual("Can use JS regular expressions to match numbers",
+            new WebObject('{ "price": "/^[0-9]+[\.]*[0-9]*$/", "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "price": "123.123", "test": "LHS" }')
+            ),
+            new WebObject('{ "price": "123.123", "test": "RHS" }')
+);
+
 // -----------------------------------------------------------------------
 
 test.objectsEqual("Rewrites null to a string",

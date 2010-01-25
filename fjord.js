@@ -222,6 +222,9 @@ function slashApply(slashpattern, lhs, bindings){
     var ands = lhm.split(';');
     for(var i in ands){
         var and = ands[i];
+        if(and==''){
+            continue;
+        }
         if(and[0]=='$'){
             if(!handleBindings(and, lhs, bindings)) return null;
             continue;
@@ -258,7 +261,7 @@ function slashApply(slashpattern, lhs, bindings){
             if(lt && parseFloat(lhs) >= parseFloat(arg)) return null;
             continue;
         }
-        if(!(lhs.constructor===String && and==lhs)) return null;
+        if(!(lhs.constructor===String && lhs.match(and))) return null;
     }
     return rhs? resolve(lhs, rhs, bindings): lhs;
 }
