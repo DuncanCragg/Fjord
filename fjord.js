@@ -65,9 +65,9 @@ WebObject.prototype.equals = function(that){
 }
 
 WebObject.prototype.applyTo = function(that){
-    that.json["%uid"]="@"+that.uid;
+    that.json["%uid"]=that.uid;
     that.json["%refs"]=that.refs;
-    var jsonret = applyTo(this.json, that.json, { "%uid": "@"+that.uid });
+    var jsonret = applyTo(this.json, that.json, { "%uid": that.uid });
     var wobjret = ((jsonret==null || jsonret===that.json)? that: new WebObject(jsonret, that.rules, that.uid, that.refs));
     delete wobjret.json["%refs"];
     delete wobjret.json["%uid"];
@@ -85,7 +85,7 @@ WebObject.prototype.runRules = function(){
 }
 
 WebObject.prototype.notifyRefs = function(){
-    for(var i in this.refs) Cache.notify(Cache[this.refs[i].substring(1)]);
+    for(var i in this.refs) Cache.notify(Cache[this.refs[i]]);
 }
 
 // -----------------------------------------------------------------------
@@ -99,7 +99,7 @@ function cacheGET(uid, referer){
     if(!o) return null;
     if(addIfNotIn(o.refs, referer)) Cache.notify(o);
     j=o.json;
-    j["%uid"]="@"+uid;
+    j["%uid"]=uid;
     return j;
 }
 
@@ -117,9 +117,8 @@ function applyTo(j1, j2, bindings){
     var t2=j2? j2.constructor: null;
     if(t1===String && j1[0]=='/') { var r = slashApply(j1, j2, bindings); if(r!=null) return r; }
     if(t1!==Array && t2===Array){ j1=[ j1 ]; t1=Array; }
-    if(t1===Object && t2===String && j2[0]=='@'){
-        var uid2=j2.substring(1);
-        a2=cacheGET(uid2, bindings["%uid"]);
+    if(t1===Object && t2===String && j2.substring(0,5)=='owid-'){
+        a2=cacheGET(j2, bindings["%uid"]);
         t2=Object;
     }
     if(t1!==t2) return null;
@@ -348,7 +347,7 @@ function addIfNotIn(arr, item){
 // -----------------------------------------------------------------------
 
 function uid() {
-   return (fourHex()+"-"+fourHex()+"-"+fourHex()+"-"+fourHex());
+   return ("owid-"+fourHex()+"-"+fourHex()+"-"+fourHex()+"-"+fourHex());
 }
 
 function fourHex() {
