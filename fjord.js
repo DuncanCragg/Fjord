@@ -7,14 +7,14 @@ var assert = require('assert');
 var Cache = { "notifyqueue": [] };
 
 Cache.notify = function(owid){
-    addIfNotIn(this.notifyqueue, this[owid]);
+    addIfNotIn(this.notifyqueue, owid);
 }
 
 Cache.runRulesOnNotifiedObjects = function(){
     while(this.notifyqueue.length){
         var nq = this.notifyqueue;
         this.notifyqueue=[];
-        for(var i in nq) nq[i].runRules();
+        for(var i in nq) this[nq[i]].runRules();
     }
 }
 
