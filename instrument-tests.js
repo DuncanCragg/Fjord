@@ -70,8 +70,8 @@ askone=new WebObject('{ "tags": [ "equity", "ask" ], "on": "'+instru.uid+'", "pr
 
 // ---------------
 
-bidone=bidrl1.applyTo(bidone);
-askone=askrl1.applyTo(askone);
+bidrl1.applyTo(bidone);
+askrl1.applyTo(askone);
 
 test.objectsEqual("First Bid rule works on first bid", bidone, 
            new WebObject('{ "tags": [ "equity", "bid" ], "on": "'+instru.uid+'", "price": "11" }'));
@@ -81,8 +81,8 @@ test.objectsEqual("First Ask rule works on first ask", askone,
 
 // ---------------
 
-instru=insrl1.applyTo(instru);
-instru=insrl2.applyTo(instru);
+insrl1.applyTo(instru);
+insrl2.applyTo(instru);
 
 expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
                          '  "long-name": "Acme Co., Inc",'+
@@ -94,7 +94,7 @@ test.objectsEqual("First and Second Instrument rules work on first bid/ask", ins
 
 // ---------------
 
-instru=insrl3.applyTo(instru);
+insrl3.applyTo(instru);
 
 expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
                          '  "long-name": "Acme Co., Inc",'+
@@ -109,8 +109,8 @@ test.objectsEqual("Third Instrument rule works on first bid/ask", instru, expect
 bidtwo=new WebObject('{ "tags": [ "equity", "bid" ], "on": "'+instru.uid+'", "price": "" }');
 asktwo=new WebObject('{ "tags": [ "equity", "ask" ], "on": "'+instru.uid+'", "price": "" }');
 
-bidtwo=bidrl1.applyTo(bidtwo);
-asktwo=askrl1.applyTo(asktwo);
+bidrl1.applyTo(bidtwo);
+askrl1.applyTo(asktwo);
 
 test.objectsEqual("First Bid rule works on second bid", bidtwo, 
            new WebObject('{ "tags": [ "equity", "bid" ], "on": "'+instru.uid+'", "price": "12.1" }'));
@@ -120,8 +120,8 @@ test.objectsEqual("First Ask rule works on second ask", asktwo,
 
 // ---------------
 
-instru=insrl1.applyTo(instru);
-instru=insrl2.applyTo(instru);
+insrl1.applyTo(instru);
+insrl2.applyTo(instru);
 
 expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
                          '  "long-name": "Acme Co., Inc",'+
@@ -133,7 +133,7 @@ test.objectsEqual("First and Second Instrument rules work on second bid/ask", in
 
 // ---------------
 
-instru=insrl3.applyTo(instru);
+insrl3.applyTo(instru);
 
 expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
                          '  "long-name": "Acme Co., Inc",'+
@@ -145,8 +145,8 @@ test.objectsEqual("Third Instrument rule works on second bid/ask", instru, expec
 
 // -------------------------------------------------------------------
 
-instru=instru.apply(new WebObject('{ "bid-ask-spread": { "high-bid": "/number/0/" } }'));
-instru=instru.apply(new WebObject('{ "bid-ask-spread": { "low-ask":  "/number/0/" } }'));
+instru.apply(new WebObject('{ "bid-ask-spread": { "high-bid": "/number/0/" } }'));
+instru.apply(new WebObject('{ "bid-ask-spread": { "low-ask":  "/number/0/" } }'));
 
 expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
                          '  "long-name": "Acme Co., Inc",'+
@@ -156,8 +156,8 @@ expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
 
 test.objectsEqual("Spread reset to zero", instru, expected);
 
-instru=insrl4.applyTo(instru);
-instru=insrl5.applyTo(instru);
+insrl4.applyTo(instru);
+insrl5.applyTo(instru);
 
 expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
                          '  "long-name": "Acme Co., Inc",'+

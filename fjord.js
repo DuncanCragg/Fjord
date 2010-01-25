@@ -22,33 +22,25 @@ exports.Cache = Cache;
 
 // -----------------------------------------------------------------------
 
-function WebObject(json, rules, setuid, setrefs){
-    if(setuid){
-        this.rules = rules;
-        this.uid = setuid;
-        this.refs = setrefs;
+function WebObject(json, rules){
+    this.rules = rules;
+    this.uid = uid();
+    this.refs = [];
+    if(!json) this.json = {};
+    else
+    if(json.constructor===String){
+        this.json = JSON.parse(json);
+    }
+    else
+    if(json.constructor===Object){
         this.json = json;
     }
-    else{
-        this.rules = rules;
-        this.uid = uid();
-        this.refs = [];
-        if(!json) this.json = {};
-        else
-        if(json.constructor===String){
-            this.json = JSON.parse(json);
-        }
-        else
-        if(json.constructor===Object){
-            this.json = json;
-        }
-        else this.json = {};
-    }
+    else this.json = {};
     Cache[this.uid]=this;
 }
 
-WebObject.create = function(json, rules, setuid, setrefs){
-    var o = new WebObject(json, rules, setuid, setrefs);
+WebObject.create = function(json, rules){
+    var o = new WebObject(json, rules);
     if(rules){
         Cache.notify(o);
         Cache.runRulesOnNotifiedObjects();
@@ -65,23 +57,24 @@ WebObject.prototype.equals = function(that){
 }
 
 WebObject.prototype.applyTo = function(that){
+    that.modified=false;
     that.json["%uid"]=that.uid;
     that.json["%refs"]=that.refs;
-    var jsonret = applyTo(this.json, that.json, { "%uid": that.uid });
-    var wobjret = ((jsonret==null || jsonret===that.json)? that: new WebObject(jsonret, that.rules, that.uid, that.refs));
-    delete wobjret.json["%refs"];
-    delete wobjret.json["%uid"];
-    return wobjret;
+    var applyjson= applyTo(this.json, that.json, { "%uid": that.uid });
+    if(applyjson!=null && applyjson!==that.json){ that.json = applyjson; that.modified=true; }
+    delete that.json["%refs"];
+    delete that.json["%uid"];
+    return that;
 }
 
 WebObject.prototype.apply = function(rule){ return rule.applyTo(this); }
 
 WebObject.prototype.runRules = function(){
     if(!this.rules) return;
-    var orig = this;
-    for(var i in this.rules) Cache[this.rules[i]].applyTo(Cache[this.uid]);
-    var curr = Cache[this.uid];
-    if(curr !== orig) curr.notifyRefs();
+    for(var i in this.rules) Cache[this.rules[i]].applyTo(this);
+    if(this.modified){
+        this.notifyRefs();
+    }
 }
 
 WebObject.prototype.notifyRefs = function(){

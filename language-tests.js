@@ -275,41 +275,39 @@ test.objectsEqual("Single item matches in array and rewrites it each time",
 
 // -------------------------------------------------------------------
 
-var rule     = new WebObject('{ "from": "/array;$x/", "copy": "/null/$x/" }');
-var before   = new WebObject('{ "from": [ "a", "b" ], "copy": ""          }');
+var rule = new WebObject('{ "from": "/array;$x/", "copy": "/null/$x/" }');
+var obj  = new WebObject('{ "from": [ "a", "b" ], "copy": ""          }');
 
-var after = rule.applyTo(before);
+rule.applyTo(obj);
 
 var expected = new WebObject('{ "from": [ "a", "b" ], "copy": [ "a", "b" ] }');
 
-test.objectsEqual("Binding array to rhs makes a copy", after, expected);
+test.objectsEqual("Binding array to rhs makes a copy", obj, expected);
 
-test.isTrue("Original array left intact after rule applied", after.json.from===before.json.from);
-test.isTrue("Using binding of array on rhs copies array",    after.json.copy!==before.json.from);
+test.isTrue("Using binding of array on rhs copies array", obj.json.copy!==obj.json.from);
 
 // -------------------------------------------------------------------
 
+obj  = new WebObject('{ "hello": "" }');
+
 rule = new WebObject('{ "hello": "/bye/world/" }');
-before  = new WebObject('{ "hello": "" }');
 
-after=rule.applyTo(before)
+rule.applyTo(obj)
 
-test.isTrue("If rule isn't applied, result === target", after===before);
+test.isTrue("If rule isn't applied, result modified flag not set", !obj.modified);
 
 rule = new WebObject('{ "hello": "/null/world/" }');
 
-after=rule.applyTo(before);
+rule.applyTo(obj);
 
-test.isTrue("If rule is applied, result == target",  after.equals(new WebObject('{ "hello": "world" }')));
-test.isTrue("If rule is applied, result !== target", after!==before);
-test.isTrue("If rule is applied uid same",           after.uid==before.uid);
+test.isTrue("If rule is applied, result modified flag set", obj.modified);
+test.isTrue("If rule is applied, result == target",  obj.equals(new WebObject('{ "hello": "world" }')));
 
 rule = new WebObject('{ "hello": "/world/world/" }');
 
-after2 = rule.applyTo(after);
+rule.applyTo(obj);
 
-test.isTrue("If rule is applied but result unchanged, result === target", after2===after);
-test.isTrue("If rule is applied uid same",                                after2.uid==after.uid);
+test.isTrue("If rule is applied but result unchanged, result modified flag not set", !obj.modified);
 
 // -------------------------------------------------------------------
 
@@ -505,8 +503,8 @@ ob=new WebObject('{ "r": [ { "n": "111", "tags": [ "x" ] },'+
                  '  "xs": [ ],'+
                  '  "ys": [ ] }');
 
-ob=r1.applyTo(ob);
-ob=r2.applyTo(ob);
+r1.applyTo(ob);
+r2.applyTo(ob);
 
 expected = new WebObject('{ "r": [ { "n": "111", "tags": [ "x" ] },'+
                          '         { "n": "222", "tags": [ "y" ] },'+
@@ -532,8 +530,8 @@ ob=new WebObject('{ "r": [ { "n": "111", "tags": [ "x" ] },'+
                  '  "xs": [ ],'+
                  '  "ys": [ ] }');
 
-ob=r1.applyTo(ob);
-ob=r2.applyTo(ob);
+r1.applyTo(ob);
+r2.applyTo(ob);
 
 expected = new WebObject('{ "r": [ { "n": "111", "tags": [ "x" ] },'+
                          '         { "n": "222", "tags": [ "y" ] },'+
@@ -574,14 +572,14 @@ test.objectsEqual("Can get uids and ages of adults from person list",
 // -------------------------------------------------------------------
 
 var rule     = new WebObject('{ "a": [ "/$x/", "/array/has($x)/" ] }')
-var before   = new WebObject('{ "a": [ "k", [ "j" ] ] }')
+var obj      = new WebObject('{ "a": [ "k", [ "j" ] ] }')
 var expected = new WebObject('{ "a": [ "k", [ "j", "k" ] ] }')
-var after    = rule.applyTo(before);
 
-test.objectsEqual("Adds to array if not there with has()", after, expected);
+rule.applyTo(obj);
 
-test.isTrue("Web object different even though only changed inside an array", before!==after);
-test.isTrue("Web object uid same though", before.uid===after.uid);
+test.objectsEqual("Adds to array if not there with has()", obj, expected);
+
+test.isTrue("Web object different even though only changed inside an array", obj.modified);
 
 test.objectsEqual("Won't add again with has() if already there",
             new WebObject('{ "a": [ "/$x/", "/array/has($x)/" ] }')
@@ -593,43 +591,44 @@ test.objectsEqual("Won't add again with has() if already there",
 
 // -------------------------------------------------------------------
 
-var rule  =new WebObject('{ "%uid": "/$uid/", "hasuid": "/array/has($uid)/" }');
+var obj=new WebObject('{ "hasuid": [ "foo" ], "test": "LHS" }');
+var uid   =obj.uid;
 
-var before=new WebObject('{ "hasuid": [ "foo" ], "test": "LHS" }');
-var uid   =before.uid;
 
-var after = rule.applyTo(before);
+var rule1 = new WebObject('{ "%uid": "/$uid/", "hasuid": "/array/has($uid)/" }');
+
+rule1.applyTo(obj);
 
 var expected=new WebObject('{ "hasuid": [ "foo", "'+uid+'" ], "test": "LHS"  }');
 
-test.objectsEqual("Can get object uid and put it into an array", after, expected);
+test.objectsEqual("Can get object uid and put it into an array", obj, expected);
 
 
 var rule2 = new WebObject('{ "hasuid": { "hasuid": { "hasuid": { "hasuid": "foo" } } }, "test": "/LHS/RHS/" }');
 
-var after2 = rule2.applyTo(after);
+rule2.applyTo(obj);
 
 var expected2=new WebObject('{ "hasuid": [ "foo", "'+uid+'" ], "test": "RHS"  }');
 
-test.objectsEqual("Can match self circularly now", after2, expected2);
+test.objectsEqual("Can match self circularly now", obj, expected2);
 
 
 var rule3  =new WebObject('{ "hasuid": "/$uid/", "%uid": "/$uid/", "test": "/RHS/rhs/" }');
 
 var expected3=new WebObject('{ "hasuid": [ "foo", "'+uid+'" ], "test": "rhs"  }');
 
-var after3 = rule3.applyTo(after2);
+rule3.applyTo(obj);
 
-test.objectsEqual("Can match own uid inside the array", after3, expected3);
+test.objectsEqual("Can match own uid inside the array", obj, expected3);
 
 
 var rule4  =new WebObject('{ "%uid": { "%uid": { "hasuid": "'+uid+'" } }, "test": "/rhs/RHS/" }');
 
 var expected4=new WebObject('{ "hasuid": [ "foo", "'+uid+'" ], "test": "RHS"  }');
 
-var after4 = rule4.applyTo(after3);
+rule4.applyTo(obj);
 
-test.objectsEqual("Can delve into %uid to see self", after4, expected4);
+test.objectsEqual("Can delve into %uid to see self", obj, expected4);
 
 // -------------------------------------------------------------------
 
