@@ -213,11 +213,14 @@ function mergeBindings(o1, o2){
     }
 }
 
+var slashRE = new RegExp("^/([^/]*)/((.*)/)?$", "g");
+
 function slashApply(slashpattern, lhs, bindings){
-    var m  =           slashpattern.indexOf('/',1);
-    var e  =(m != -1)? slashpattern.indexOf('/',m+1): -1;
-    var lhm=(m != -1)? slashpattern.substring(1,m): slashpattern.substring(1);
-    var rhs=(e != -1)? slashpattern.substring(m+1,e): null; 
+    slashRE.lastIndex=0;
+    var ra = slashRE.exec(slashpattern);
+    if(!ra) return null;
+    lhm = ra[1];
+    rhs = ra[3];
     var ands = lhm.split(';');
     for(var i in ands){
         var and = ands[i];
@@ -368,6 +371,10 @@ function min(v){
     var min=v[0];
     for(var i=1; i<v.length; i++) if(v[i]<min) min=v[i];
     return min;
+}
+
+function fix(n,x){
+    return Math.round(x*Math.pow(10,n))/Math.pow(10,n);
 }
 
 // -----------------------------------------------------------------------

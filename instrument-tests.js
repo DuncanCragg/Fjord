@@ -16,12 +16,12 @@ sys.puts('------------------ Instrument Tests ---------------------');
 bidrl1=new WebObject('{ "tags": [ "equity", "bid" ],'+
                      '  "on": { "tags": [ "equity", "instrument" ],'+
                      '          "bid-ask-spread": { "high-bid": "/$hibid;number/" } },'+
-                     '  "price": "/null/( $hibid * 1.10 )/" }');
+                     '  "price": "/null/fix(2, $hibid * 1.10 )/" }');
 
 askrl1=new WebObject('{ "tags": [ "equity", "ask" ],'+
                      '  "on": { "tags": [ "equity", "instrument" ],'+
                      '          "bid-ask-spread": { "low-ask": "/$loask;number/" } },'+
-                     '  "price": "/null/( $loask * 0.90 )/" }');
+                     '  "price": "/null/fix(2, $loask * 0.90 )/" }');
 
 insrl1=new WebObject('{ "%uid": "/$this/",'+
                      '  "%refs": { "%uid": "/$bid/",'+
@@ -113,7 +113,7 @@ bidtwo=bidrl1.applyTo(bidtwo);
 asktwo=askrl1.applyTo(asktwo);
 
 test.objectsEqual("First Bid rule works on second bid", bidtwo, 
-           new WebObject('{ "tags": [ "equity", "bid" ], "on": "'+instru.uid+'", "price": "12.100000000000001" }'));
+           new WebObject('{ "tags": [ "equity", "bid" ], "on": "'+instru.uid+'", "price": "12.1" }'));
 
 test.objectsEqual("First Ask rule works on second ask", asktwo, 
            new WebObject('{ "tags": [ "equity", "ask" ], "on": "'+instru.uid+'", "price": "16.2" }'));
@@ -139,7 +139,7 @@ expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
                          '  "long-name": "Acme Co., Inc",'+
                          '  "buyers":  [ "'+bidone.uid+'", "'+bidtwo.uid+'" ],'+
                          '  "sellers": [ "'+askone.uid+'", "'+asktwo.uid+'" ],'+
-                         '  "bid-ask-spread": { "high-bid": "12.100000000000001", "low-ask":  "16.2" } }')
+                         '  "bid-ask-spread": { "high-bid": "12.1", "low-ask":  "16.2" } }')
 
 test.objectsEqual("Third Instrument rule works on second bid/ask", instru, expected);
 
@@ -163,7 +163,7 @@ expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
                          '  "long-name": "Acme Co., Inc",'+
                          '  "buyers":  [ "'+bidone.uid+'", "'+bidtwo.uid+'" ],'+
                          '  "sellers": [ "'+askone.uid+'", "'+asktwo.uid+'" ],'+
-                         '  "bid-ask-spread": { "high-bid": "12.100000000000001", "low-ask":  "16.2" } }')
+                         '  "bid-ask-spread": { "high-bid": "12.1", "low-ask":  "16.2" } }')
 
 test.objectsEqual("Fourth/Fifth Instrument rules work - alternative approach", instru, expected);
 
@@ -209,12 +209,12 @@ instrument=WebObject.create('{ "tags": [ "equity", "instrument" ],'+
 bidrule=WebObject.create('{ "tags": [ "equity", "bid" ],'+
                          '  "on": { "tags": [ "equity", "instrument" ],'+
                          '          "bid-ask-spread": { "high-bid": "/$hibid;number/" } },'+
-                         '  "price": "/null/( $hibid * 1.10 )/" }');
+                         '  "price": "/null/fix(2, $hibid * 1.10 )/" }');
 
 askrule=WebObject.create('{ "tags": [ "equity", "ask" ],'+
                          '  "on": { "tags": [ "equity", "instrument" ],'+
                          '          "bid-ask-spread": { "low-ask": "/$loask;number/" } },'+
-                         '  "price": "/null/( $loask * 0.90 )/" }');
+                         '  "price": "/null/fix(2, $loask * 0.90 )/" }');
 
 // ---------------
 
@@ -229,7 +229,7 @@ expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
                          '  "long-name": "Acme Co., Inc",'+
                          '  "buyers":  [ "'+bid1+'", "'+bid2+'" ],'+
                          '  "sellers": [ "'+ask1+'", "'+ask2+'" ],'+
-                         '  "bid-ask-spread": { "high-bid": "12.100000000000001", "low-ask":  "16.2" } }')
+                         '  "bid-ask-spread": { "high-bid": "12.1", "low-ask":  "16.2" } }')
 
 test.objectsEqual("Observer version works", Cache[instrument], expected);
 

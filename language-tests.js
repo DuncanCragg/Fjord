@@ -181,6 +181,16 @@ test.objectsEqual("Can use JS regular expressions to match numbers",
 
 // -----------------------------------------------------------------------
 
+test.objectsEqual("Can fix decimals of float",
+            new WebObject('{ "a": { "b": "//fix(3,1/3)/" } }')
+            .applyTo(
+            new WebObject('{ "a": { "b": "" } }')
+            ),
+            new WebObject('{ "a": { "b": "0.333" } }')
+);
+
+// -----------------------------------------------------------------------
+
 test.objectsEqual("Rewrites null to a string",
             new WebObject('{ "a": "/null/b/" }')
             .applyTo(
