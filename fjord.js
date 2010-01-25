@@ -23,9 +23,8 @@ exports.Cache = Cache;
 // -----------------------------------------------------------------------
 
 function WebObject(json, rules){
-    this.rules = rules;
-    this.uid = uid();
-    this.refs = [];
+    this.owid = owid();
+    this.etag = 0;
     if(!json) this.json = {};
     else
     if(json.constructor===String){
@@ -36,7 +35,9 @@ function WebObject(json, rules){
         this.json = json;
     }
     else this.json = {};
-    Cache[this.uid]=this;
+    this.rules = rules;
+    this.refs = [];
+    Cache[this.owid]=this;
 }
 
 WebObject.create = function(json, rules){
@@ -45,7 +46,7 @@ WebObject.create = function(json, rules){
         Cache.notify(o);
         Cache.runRulesOnNotifiedObjects();
     }
-    return o.uid;
+    return o.owid;
 }
 
 exports.WebObject = WebObject;
@@ -58,12 +59,14 @@ WebObject.prototype.equals = function(that){
 
 WebObject.prototype.applyTo = function(that){
     that.modified=false;
-    that.json["%uid"]=that.uid;
+    that.json["%owid"]=that.owid;
+    that.json["%etag"]=that.etag+"";
     that.json["%refs"]=that.refs;
-    var applyjson= applyTo(this.json, that.json, { "%uid": that.uid });
+    var applyjson= applyTo(this.json, that.json, { "%owid": that.owid });
     if(applyjson!=null && applyjson!==that.json){ that.json = applyjson; that.modified=true; }
     delete that.json["%refs"];
-    delete that.json["%uid"];
+    delete that.json["%etag"];
+    delete that.json["%owid"];
     return that;
 }
 
@@ -71,8 +74,13 @@ WebObject.prototype.apply = function(rule){ return rule.applyTo(this); }
 
 WebObject.prototype.runRules = function(){
     if(!this.rules) return;
-    for(var i in this.rules) Cache[this.rules[i]].applyTo(this);
-    if(this.modified){
+    var mod=false;
+    for(var i in this.rules){
+        Cache[this.rules[i]].applyTo(this);
+        if(this.modified) mod=true;
+    }
+    if(mod){
+        this.etag++;
         this.notifyRefs();
     }
 }
@@ -87,12 +95,12 @@ WebObject.prototype.toString = function(){ return JSON.stringify(this.json); }
 
 // -----------------------------------------------------------------------
 
-function cacheGET(uid, referer){
-    var o=Cache[uid];
+function cacheGET(owid, referer){
+    var o=Cache[owid];
     if(!o) return null;
     if(addIfNotIn(o.refs, referer)) Cache.notify(o);
     j=o.json;
-    j["%uid"]=uid;
+    j["%owid"]=owid;
     return j;
 }
 
@@ -105,13 +113,14 @@ function deepEqual(o1, o2){
 }
 
 function applyTo(j1, j2, bindings){
+    if(j2===undefined) return null;
     var a2=null;
     var t1=j1? j1.constructor: null;
     var t2=j2? j2.constructor: null;
     if(t1===String && j1[0]=='/') { var r = slashApply(j1, j2, bindings); if(r!=null) return r; }
     if(t1!==Array && t2===Array){ j1=[ j1 ]; t1=Array; }
     if(t1===Object && t2===String && j2.substring(0,5)=='owid-'){
-        a2=cacheGET(j2, bindings["%uid"]);
+        a2=cacheGET(j2, bindings["%owid"]);
         t2=Object;
     }
     if(t1!==t2) return null;
@@ -159,7 +168,7 @@ function applyToObject(j1, j2, a2, bindings){
         var v1 = j1[k];
         var v2 = y2[k]; if(v2===null) v2="";
         var v3=applyTo(v1, v2, ourbind);
-        if(v3==null){ if(a2) delete a2["%uid"]; return null; }
+        if(v3==null){ if(a2) delete a2["%owid"]; return null; }
         if(a2) continue;
         if(v3.modified || v3!=v2){
             delete v3.modified;
@@ -168,7 +177,7 @@ function applyToObject(j1, j2, a2, bindings){
         }
     }
     mergeBindings(bindings, ourbind);
-    if(a2) delete a2["%uid"];
+    if(a2) delete a2["%owid"];
     return j3? j3: j2;
 }
 
@@ -342,7 +351,7 @@ function addIfNotIn(arr, item){
 
 // -----------------------------------------------------------------------
 
-function uid() {
+function owid() {
    return ("owid-"+fourHex()+"-"+fourHex()+"-"+fourHex()+"-"+fourHex());
 }
 

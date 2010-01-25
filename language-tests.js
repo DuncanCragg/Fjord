@@ -5,6 +5,7 @@ var assert = require('assert');
 var test = require('./simple-test');
 
 var fjord = require('./fjord');
+var log       = fjord.log;
 var WebObject = fjord.WebObject;
 
 
@@ -370,47 +371,47 @@ test.objectsEqual("Correctly fails to match when tag differs but val is empty",
 // -------------------------------------------------------------------
 
 var there = new WebObject('{ "there": "1.0" }');
-var thereUID = there.uid;
-test.isTrue("WebObject has a UID", thereUID);
+var thereOWID = there.owid;
+test.isTrue("WebObject has a OWID", thereOWID);
 
 test.objectsEqual("Jumps link and matches in another object",
             new WebObject('{ "here": { "there": "/number/" }, "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "here": "'+thereUID+'", "test": "LHS" }')
+            new WebObject('{ "here": "'+thereOWID+'", "test": "LHS" }')
             ),
-            new WebObject('{ "here": "'+thereUID+'", "test": "RHS" }')
+            new WebObject('{ "here": "'+thereOWID+'", "test": "RHS" }')
 );
 
 test.objectsEqual("Jumps link and correctly fails to match in another object",
             new WebObject('{ "here": { "there": "/1.1/" }, "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "here": "'+thereUID+'", "test": "LHS" }')
+            new WebObject('{ "here": "'+thereOWID+'", "test": "LHS" }')
             ),
-            new WebObject('{ "here": "'+thereUID+'", "test": "LHS" }')
+            new WebObject('{ "here": "'+thereOWID+'", "test": "LHS" }')
 );
 
 test.objectsEqual("Won't rewrite in linked object",
             new WebObject('{ "here": { "there": "/number/xxx/" }, "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "here": "'+thereUID+'", "test": "LHS" }')
+            new WebObject('{ "here": "'+thereOWID+'", "test": "LHS" }')
             ),
-            new WebObject('{ "here": "'+thereUID+'", "test": "RHS" }')
+            new WebObject('{ "here": "'+thereOWID+'", "test": "RHS" }')
 );
 
-test.objectsEqual("Can see sub-object uid",
-            new WebObject('{ "here": "/$uid/", "test": "/LHS/$uid/" }')
+test.objectsEqual("Can see sub-object owid",
+            new WebObject('{ "here": "/$owid/", "test": "/LHS/$owid/" }')
             .applyTo(
-            new WebObject('{ "here": "'+thereUID+'", "test": "LHS" }')
+            new WebObject('{ "here": "'+thereOWID+'", "test": "LHS" }')
             ),
-            new WebObject('{ "here": "'+thereUID+'", "test": "'+thereUID+'" }')
+            new WebObject('{ "here": "'+thereOWID+'", "test": "'+thereOWID+'" }')
 );
 
-test.objectsEqual("Can see sub-object uid by %uid",
-            new WebObject('{ "here": { "%uid": "/$uid/" }, "test": "/LHS/$uid/" }')
+test.objectsEqual("Can see sub-object owid by %owid",
+            new WebObject('{ "here": { "%owid": "/$owid/" }, "test": "/LHS/$owid/" }')
             .applyTo(
-            new WebObject('{ "here": "'+thereUID+'", "test": "LHS" }')
+            new WebObject('{ "here": "'+thereOWID+'", "test": "LHS" }')
             ),
-            new WebObject('{ "here": "'+thereUID+'", "test": "'+thereUID+'" }')
+            new WebObject('{ "here": "'+thereOWID+'", "test": "'+thereOWID+'" }')
 );
 
 // -------------------------------------------------------------------
@@ -561,12 +562,12 @@ var p4 = new WebObject('{ "tags": "person", "age": "35" }');
 var p5 = new WebObject('{ "tags": "person", "age": "-35" }');
 var p6 = new WebObject('{ "tags": "person", "age": "25" }');
 
-test.objectsEqual("Can get uids and ages of adults from person list",
-            new WebObject('{ "people": { "%uid": "/$uids/", "tags": "person", "age": "/gt(21);$ages/" }, "adults": "/null/$uids/", "ages": "/null/$ages/" }')
+test.objectsEqual("Can get owids and ages of adults from person list",
+            new WebObject('{ "people": { "%owid": "/$owids/", "tags": "person", "age": "/gt(21);$ages/" }, "adults": "/null/$owids/", "ages": "/null/$ages/" }')
             .applyTo(
-            new WebObject('{ "people": [ "'+p1.uid+'", "'+p2.uid+'", "'+p3.uid+'", "'+p4.uid+'", "'+p5.uid+'", "'+p6.uid+'" ], "ages": "", "adults": "" }')
+            new WebObject('{ "people": [ "'+p1.owid+'", "'+p2.owid+'", "'+p3.owid+'", "'+p4.owid+'", "'+p5.owid+'", "'+p6.owid+'" ], "ages": "", "adults": "" }')
             ),
-            new WebObject('{ "people": [ "'+p1.uid+'", "'+p2.uid+'", "'+p3.uid+'", "'+p4.uid+'", "'+p5.uid+'", "'+p6.uid+'" ], "adults": [ "'+p2.uid+'", "'+p4.uid+'", "'+p6.uid+'" ], "ages": [ "22", "35", "25" ] }')
+            new WebObject('{ "people": [ "'+p1.owid+'", "'+p2.owid+'", "'+p3.owid+'", "'+p4.owid+'", "'+p5.owid+'", "'+p6.owid+'" ], "adults": [ "'+p2.owid+'", "'+p4.owid+'", "'+p6.owid+'" ], "ages": [ "22", "35", "25" ] }')
 );
 
 // -------------------------------------------------------------------
@@ -591,44 +592,44 @@ test.objectsEqual("Won't add again with has() if already there",
 
 // -------------------------------------------------------------------
 
-var obj=new WebObject('{ "hasuid": [ "foo" ], "test": "LHS" }');
-var uid   =obj.uid;
+var obj=new WebObject('{ "hasowid": [ "foo" ], "test": "LHS" }');
+var owid   =obj.owid;
 
 
-var rule1 = new WebObject('{ "%uid": "/$uid/", "hasuid": "/array/has($uid)/" }');
+var rule1 = new WebObject('{ "%owid": "/$owid/", "hasowid": "/array/has($owid)/" }');
 
 rule1.applyTo(obj);
 
-var expected=new WebObject('{ "hasuid": [ "foo", "'+uid+'" ], "test": "LHS"  }');
+var expected=new WebObject('{ "hasowid": [ "foo", "'+owid+'" ], "test": "LHS"  }');
 
-test.objectsEqual("Can get object uid and put it into an array", obj, expected);
+test.objectsEqual("Can get object owid and put it into an array", obj, expected);
 
 
-var rule2 = new WebObject('{ "hasuid": { "hasuid": { "hasuid": { "hasuid": "foo" } } }, "test": "/LHS/RHS/" }');
+var rule2 = new WebObject('{ "hasowid": { "hasowid": { "hasowid": { "hasowid": "foo" } } }, "test": "/LHS/RHS/" }');
 
 rule2.applyTo(obj);
 
-var expected2=new WebObject('{ "hasuid": [ "foo", "'+uid+'" ], "test": "RHS"  }');
+var expected2=new WebObject('{ "hasowid": [ "foo", "'+owid+'" ], "test": "RHS"  }');
 
 test.objectsEqual("Can match self circularly now", obj, expected2);
 
 
-var rule3  =new WebObject('{ "hasuid": "/$uid/", "%uid": "/$uid/", "test": "/RHS/rhs/" }');
+var rule3  =new WebObject('{ "hasowid": "/$owid/", "%owid": "/$owid/", "test": "/RHS/rhs/" }');
 
-var expected3=new WebObject('{ "hasuid": [ "foo", "'+uid+'" ], "test": "rhs"  }');
+var expected3=new WebObject('{ "hasowid": [ "foo", "'+owid+'" ], "test": "rhs"  }');
 
 rule3.applyTo(obj);
 
-test.objectsEqual("Can match own uid inside the array", obj, expected3);
+test.objectsEqual("Can match own owid inside the array", obj, expected3);
 
 
-var rule4  =new WebObject('{ "%uid": { "%uid": { "hasuid": "'+uid+'" } }, "test": "/rhs/RHS/" }');
+var rule4  =new WebObject('{ "%owid": { "%owid": { "hasowid": "'+owid+'" } }, "test": "/rhs/RHS/" }');
 
-var expected4=new WebObject('{ "hasuid": [ "foo", "'+uid+'" ], "test": "RHS"  }');
+var expected4=new WebObject('{ "hasowid": [ "foo", "'+owid+'" ], "test": "RHS"  }');
 
 rule4.applyTo(obj);
 
-test.objectsEqual("Can delve into %uid to see self", obj, expected4);
+test.objectsEqual("Can delve into %owid to see self", obj, expected4);
 
 // -------------------------------------------------------------------
 
