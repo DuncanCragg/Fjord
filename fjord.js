@@ -6,8 +6,8 @@ var assert = require('assert');
 
 var Cache = { "notifyqueue": [] };
 
-Cache.notify = function(o){
-    addIfNotIn(this.notifyqueue, o);
+Cache.notify = function(owid){
+    addIfNotIn(this.notifyqueue, this[owid]);
 }
 
 Cache.runRulesOnNotifiedObjects = function(){
@@ -43,7 +43,7 @@ function WebObject(json, rules){
 WebObject.create = function(json, rules){
     var o = new WebObject(json, rules);
     if(rules){
-        Cache.notify(o);
+        Cache.notify(o.owid);
         Cache.runRulesOnNotifiedObjects();
     }
     return o.owid;
@@ -86,7 +86,7 @@ WebObject.prototype.runRules = function(){
 }
 
 WebObject.prototype.notifyRefs = function(){
-    for(var i in this.refs) Cache.notify(Cache[this.refs[i]]);
+    for(var i in this.refs) Cache.notify(this.refs[i]);
 }
 
 // -----------------------------------------------------------------------
@@ -95,10 +95,10 @@ WebObject.prototype.toString = function(){ return JSON.stringify(this.json); }
 
 // -----------------------------------------------------------------------
 
-function cacheGET(owid, referer){
+function cacheGET(owid, refid){
     var o=Cache[owid];
     if(!o) return null;
-    if(addIfNotIn(o.refs, referer)) Cache.notify(o);
+    if(addIfNotIn(o.refs, refid)) Cache.notify(owid);
     j=o.json;
     j["%owid"]=owid;
     return j;
