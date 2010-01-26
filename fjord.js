@@ -393,26 +393,6 @@ function fourHex() {
 
 // -----------------------------------------------------------------------
 
-function max(v){
-    if(v.constructor!==Array) return v;
-    var max=v[0];
-    for(var i=1; i<v.length; i++) if(v[i]>max) max=v[i];
-    return max;
-}
-
-function min(v){
-    if(v.constructor!==Array) return v;
-    var min=v[0];
-    for(var i=1; i<v.length; i++) if(v[i]<min) min=v[i];
-    return min;
-}
-
-function fix(n,x){
-    return Math.round(x*Math.pow(10,n))/Math.pow(10,n);
-}
-
-// -----------------------------------------------------------------------
-
 function getTags(o){
     var r=[];
     for(var i in o) if(i.constructor===String) r.push(i);
@@ -430,6 +410,27 @@ function log(message, value){
 }
 
 exports.log = log;
+
+// -----------------------------------------------------------------------
+// Functions useful in rules
+
+function max(v){
+    if(v.constructor!==Array) return v;
+    var max=v[0];
+    for(var i=1; i<v.length; i++) if(v[i]>max) max=v[i];
+    return max;
+}
+
+function min(v){
+    if(v.constructor!==Array) return v;
+    var min=v[0];
+    for(var i=1; i<v.length; i++) if(v[i]<min) min=v[i];
+    return min;
+}
+
+function fix(n,x){
+    return Math.round(x*Math.pow(10,n))/Math.pow(10,n);
+}
 
 // -----------------------------------------------------------------------
 
