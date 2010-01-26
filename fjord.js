@@ -38,7 +38,7 @@ function WebObject(json, rules){
     this.rules = rules;
     this.oldrefs={};
     this.newrefs={};
-    this.refs = [];
+    this.refs = {};
     Cache[this.owid]=this;
 }
 
@@ -62,7 +62,7 @@ WebObject.prototype.equals = function(that){
 WebObject.prototype.applyTo = function(that){
     that.json["%owid"]=that.owid;
     that.json["%etag"]=that.etag+"";
-    that.json["%refs"]=that.refs;
+    that.json["%refs"]=getTags(that.refs);
     var applyjson=new Applier(this.json, that.json, { "%owid": that.owid }, that.newrefs).apply();
     if(applyjson!=null && applyjson!==that.json){ that.json = applyjson; that.modified=true; }
     delete that.json["%refs"];
@@ -82,14 +82,14 @@ WebObject.prototype.runRules = function(){
     for(var owid in this.oldrefs){
         if(this.newrefs[owid]===undefined){
             var o=Cache[owid];
-            removeFrom(o.refs, this.owid);
+            delete o.refs[this.owid];
             Cache.notify(owid);
         }
     }
     for(var owid in this.newrefs){
         if(this.oldrefs[owid]===undefined){
             var o=Cache[owid];
-            addIfNotIn(o.refs, this.owid);
+            o.refs[this.owid]=true;
             Cache.notify(owid);
         }
     }
@@ -104,7 +104,7 @@ WebObject.prototype.runRules = function(){
 }
 
 WebObject.prototype.notifyRefs = function(){
-    for(var i in this.refs) Cache.notify(this.refs[i]);
+    for(var i in this.refs) Cache.notify(i);
 }
 
 // -----------------------------------------------------------------------
@@ -412,6 +412,12 @@ function fix(n,x){
 }
 
 // -----------------------------------------------------------------------
+
+function getTags(o){
+    var r=[];
+    for(var i in o) if(i.constructor===String) r.push(i);
+    return r;
+}
 
 function deepEqual(o1, o2){
     var ok = false;
