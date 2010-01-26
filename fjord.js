@@ -51,10 +51,6 @@ WebObject.create = function(json, rules){
     return o.owid;
 }
 
-exports.WebObject = WebObject;
-
-// -----------------------------------------------------------------------
-
 WebObject.prototype.equals = function(that){ 
     return deepEqual(this.json, that.json);
 }
@@ -107,9 +103,9 @@ WebObject.prototype.notifyRefs = function(){
     for(var i in this.refs) Cache.notify(i);
 }
 
-// -----------------------------------------------------------------------
-
 WebObject.prototype.toString = function(){ return JSON.stringify(this.json); }
+
+exports.WebObject = WebObject;
 
 // -----------------------------------------------------------------------
 
@@ -381,18 +377,6 @@ function removeFrom(arr, item){
     } 
 }
 
-// -----------------------------------------------------------------------
-
-function owid() {
-   return ("owid-"+fourHex()+"-"+fourHex()+"-"+fourHex()+"-"+fourHex());
-}
-
-function fourHex() {
-   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
-}
-
-// -----------------------------------------------------------------------
-
 function getTags(o){
     var r=[];
     for(var i in o) if(i.constructor===String) r.push(i);
@@ -410,6 +394,16 @@ function log(message, value){
 }
 
 exports.log = log;
+
+// -----------------------------------------------------------------------
+
+function owid() {
+   return ("owid-"+fourHex()+"-"+fourHex()+"-"+fourHex()+"-"+fourHex());
+}
+
+function fourHex() {
+   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+}
 
 // -----------------------------------------------------------------------
 // Functions useful in rules
