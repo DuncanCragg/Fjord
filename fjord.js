@@ -420,7 +420,7 @@ function deepEqual(o1, o2){
 }
 
 function log(message, value){
-    sys.puts(message+JSON.stringify(value));
+    sys.puts("------------------\n"+message+JSON.stringify(value));
 }
 
 exports.log = log;
