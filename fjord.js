@@ -82,6 +82,7 @@ WebObject.prototype.runRules = function(){
     if(mod){
         this.etag++;
         this.notifyRefs();
+        if(WebObject.logUpdates) sys.puts("------------------\n"+JSON.stringify(this));
     }
 }
 
@@ -253,6 +254,11 @@ function slashApply(slashpattern, lhs, bindings){
             if(lhs.constructor!==String) return null;
             continue;
         }
+        if(and=='owid'){
+            if(lhs.constructor!==String) return null;
+            if(!/^owid-[-0-9a-f]+$/.test(lhs)) return null;
+            continue;
+        }
         var lt = and.indexOf('lt(')==0;
         var gt = and.indexOf('gt(')==0;
         if(lt || gt){
@@ -265,7 +271,7 @@ function slashApply(slashpattern, lhs, bindings){
             if(lt && parseFloat(lhs) >= parseFloat(arg)) return null;
             continue;
         }
-        if(!(lhs.constructor===String && lhs.match(and))) return null;
+        if(!(lhs.constructor===String && lhs.match('^'+and+'$'))) return null;
     }
     return rhs? resolve(lhs, rhs, bindings): lhs;
 }

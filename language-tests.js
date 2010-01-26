@@ -140,6 +140,14 @@ test.objectsEqual("String matches slash-string-slash",
             new WebObject('{ "on": "rope", "test": "RHS" }')
 );
 
+test.objectsEqual("OWID matches slash-owid-slash",
+            new WebObject('{ "on": "/owid/", "test": "/LHS/RHS/" }')
+            .applyTo(
+            new WebObject('{ "on": "owid-94ff-ec0b-a354-c299", "test": "LHS" }')
+            ),
+            new WebObject('{ "on": "owid-94ff-ec0b-a354-c299", "test": "RHS" }')
+);
+
 test.objectsEqual("Object matches slash-object-slash",
             new WebObject('{ "on": "/object/", "test": "/LHS/RHS/" }')
             .applyTo(
