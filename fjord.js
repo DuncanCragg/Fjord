@@ -62,7 +62,7 @@ WebObject.prototype.applyTo = function(that){
     that.json["%owid"]=that.owid;
     that.json["%etag"]=that.etag+"";
     that.json["%refs"]=that.refs;
-    var applyjson= applyTo(this.json, that.json, { "%owid": that.owid });
+    var applyjson= new Applier(this.json, that.json, { "%owid": that.owid }).apply();
     if(applyjson!=null && applyjson!==that.json){ that.json = applyjson; that.modified=true; }
     delete that.json["%refs"];
     delete that.json["%etag"];
@@ -96,7 +96,15 @@ WebObject.prototype.toString = function(){ return JSON.stringify(this.json); }
 
 // -----------------------------------------------------------------------
 
-function cacheGET(owid, refid){
+function Applier(j1, j2, bindings){
+    this.j1=j1;
+    this.j2=j2;
+    this.bindings=bindings;
+}
+
+Applier.prototype.apply = function(){ return this.applyTo(this.j1, this.j2, this.bindings); }
+
+Applier.prototype.cacheGET = function(owid, refid){
     var o=Cache[owid];
     if(!o) return null;
     if(addIfNotIn(o.refs, refid)) Cache.notify(owid);
@@ -105,43 +113,35 @@ function cacheGET(owid, refid){
     return j;
 }
 
-// -----------------------------------------------------------------------
-
-function deepEqual(o1, o2){
-    var ok = false;
-    try{ assert.deepEqual(o1, o2); ok = true; }catch(e){}
-    return ok;
-}
-
-function applyTo(j1, j2, bindings){
+Applier.prototype.applyTo = function(j1, j2, bindings){
     if(j2===undefined) return null;
     var a2=null;
     var t1=j1? j1.constructor: null;
     var t2=j2? j2.constructor: null;
-    if(t1===String && j1[0]=='/') { var r = slashApply(j1, j2, bindings); if(r!=null) return r; }
+    if(t1===String && j1[0]=='/') { var r = this.slashApply(j1, j2, bindings); if(r!=null) return r; }
     if(t1!==Array && t2===Array){ j1=[ j1 ]; t1=Array; }
     if(t1===Object && t2===String && j2.substring(0,5)=='owid-'){
-        a2=cacheGET(j2, bindings["%owid"]);
+        a2=this.cacheGET(j2, bindings["%owid"]);
         t2=Object;
     }
     if(t1!==t2) return null;
-    if(t1===Array)  return applyToArray(j1, j2, a2, bindings);
-    if(t1===Object) return applyToObject(j1, j2, a2, bindings);
+    if(t1===Array)  return this.applyToArray(j1, j2, a2, bindings);
+    if(t1===Object) return this.applyToObject(j1, j2, a2, bindings);
     return j1==j2? j2: null;
 }
 
-function applyToArray(j1, j2, a2, bindings){
+Applier.prototype.applyToArray = function(j1, j2, a2, bindings){
     var j3=null;
     var k1=0;
     var onepass=false;
     var it=0;
     var previt=bindings.iteration;
-    var ourbind = deeperObjectCopy(bindings);
+    var ourbind = this.deeperObjectCopy(bindings);
     for(var k2=0; k2<j2.length; k2++){
         ourbind.iteration=it;
         var v1 = j1[k1];
         var v2 = j2[k2];
-        var v3=applyTo(v1, v2, ourbind);
+        var v3=this.applyTo(v1, v2, ourbind);
         if(v3==null) continue;
         k1++;
         if(k1==j1.length){
@@ -151,59 +151,59 @@ function applyToArray(j1, j2, a2, bindings){
         }
         if(v3.modified || v3!=v2){
             delete v3.modified;
-            if(j3==null) j3=shallowArrayCopy(j2);
+            if(j3==null) j3=this.shallowArrayCopy(j2);
             j3[k2]=v3;
         }
     }
-    mergeBindings(bindings, ourbind);
+    this.mergeBindings(bindings, ourbind);
     bindings.iteration=previt;
     if(!onepass) return null;
     return j3? j3: j2;
 }
 
-function applyToObject(j1, j2, a2, bindings){
+Applier.prototype.applyToObject = function(j1, j2, a2, bindings){
     var j3=null;
     var y2=a2? a2: j2;
-    var ourbind = deeperObjectCopy(bindings);
+    var ourbind = this.deeperObjectCopy(bindings);
     for(var k in j1){
         var v1 = j1[k];
         var v2 = y2[k]; if(v2===null) v2="";
-        var v3=applyTo(v1, v2, ourbind);
+        var v3=this.applyTo(v1, v2, ourbind);
         if(v3==null){ if(a2) delete a2["%owid"]; return null; }
         if(a2) continue;
         if(v3.modified || v3!=v2){
             delete v3.modified;
-            if(j3==null) j3=shallowObjectCopy(j2);
+            if(j3==null) j3=this.shallowObjectCopy(j2);
             j3[k]=v3;
         }
     }
-    mergeBindings(bindings, ourbind);
+    this.mergeBindings(bindings, ourbind);
     if(a2) delete a2["%owid"];
     return j3? j3: j2;
 }
 
-function shallowObjectCopy(obj){
+Applier.prototype.shallowObjectCopy = function(obj){
     var r = {};
     for(var k in obj) r[k] = obj[k];
     return r;
 }
 
-function shallowArrayCopy(arr){
+Applier.prototype.shallowArrayCopy = function(arr){
     var r = [];
     for(var k in arr) r[k] = arr[k];
     return r;
 }
 
-function deeperObjectCopy(obj){
+Applier.prototype.deeperObjectCopy = function(obj){
     var r = {};
     for(var k in obj){
-        if(obj[k] && obj[k].constructor===Array) r[k] = shallowArrayCopy(obj[k]);
+        if(obj[k] && obj[k].constructor===Array) r[k] = this.shallowArrayCopy(obj[k]);
         else r[k] = obj[k];
     }
     return r;
 }
 
-function mergeBindings(o1, o2){
+Applier.prototype.mergeBindings = function(o1, o2){
     for(var k in o2){
         if(k=='iteration') continue;
         if(o1[k] && o1[k].constructor===Array){
@@ -218,7 +218,7 @@ function mergeBindings(o1, o2){
 
 var slashRE = new RegExp("^/([^/]*)/((.*)/)?$", "g");
 
-function slashApply(slashpattern, lhs, bindings){
+Applier.prototype.slashApply = function(slashpattern, lhs, bindings){
     slashRE.lastIndex=0;
     var ra = slashRE.exec(slashpattern);
     if(!ra) return null;
@@ -231,7 +231,7 @@ function slashApply(slashpattern, lhs, bindings){
             continue;
         }
         if(and[0]=='$'){
-            if(!handleBindings(and, lhs, bindings)) return null;
+            if(!this.handleBindings(and, lhs, bindings)) return null;
             continue;
         }
         if(and=='null'){
@@ -273,10 +273,10 @@ function slashApply(slashpattern, lhs, bindings){
         }
         if(!(lhs.constructor===String && lhs.match('^'+and+'$'))) return null;
     }
-    return rhs? resolve(lhs, rhs, bindings): lhs;
+    return rhs? this.resolve(lhs, rhs, bindings): lhs;
 }
 
-function handleBindings(and, lhs, bindings){
+Applier.prototype.handleBindings = function(and, lhs, bindings){
     var variable = and.substring(1);
     if(variable=='iteration') variable='_iteration';
     var val = bindings[variable];
@@ -300,15 +300,15 @@ function handleBindings(and, lhs, bindings){
     return true;
 }
 
-function resolve(lhs, rhs, bindings){
-    rhs=resolveBindings(rhs, bindings);
-    if(rhs.match(/^has\(/)) return resolveHas(lhs, rhs);
+Applier.prototype.resolve = function(lhs, rhs, bindings){
+    rhs=this.resolveBindings(rhs, bindings);
+    if(rhs.match(/^has\(/)) return this.resolveHas(lhs, rhs);
     rhs = evaluate(rhs);
     rhs.modified=true;
     return rhs;
 }
 
-function resolveBindings(rhs, bindings){
+Applier.prototype.resolveBindings = function(rhs, bindings){
     var re=/\$[A-Za-z0-9]+/g;
     var matches;
     while((matches = re.exec(rhs))!=null){
@@ -322,7 +322,7 @@ function resolveBindings(rhs, bindings){
     return rhs;
 }
 
-function resolveHas(lhs, rhs){
+Applier.prototype.resolveHas = function(lhs, rhs){
     var arg=rhs.substring(4,rhs.length-1);
     arg = evaluate(arg);
     if(lhs.constructor!==Array) return lhs;
@@ -386,6 +386,12 @@ function fix(n,x){
 }
 
 // -----------------------------------------------------------------------
+
+function deepEqual(o1, o2){
+    var ok = false;
+    try{ assert.deepEqual(o1, o2); ok = true; }catch(e){}
+    return ok;
+}
 
 function log(message, value){
     sys.puts(message+JSON.stringify(value));
