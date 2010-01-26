@@ -301,12 +301,14 @@ obj  = new WebObject('{ "hello": "" }');
 
 rule = new WebObject('{ "hello": "/bye/world/" }');
 
+obj.modified=false;
 rule.applyTo(obj)
 
 test.isTrue("If rule isn't applied, result modified flag not set", !obj.modified);
 
 rule = new WebObject('{ "hello": "/null/world/" }');
 
+obj.modified=false;
 rule.applyTo(obj);
 
 test.isTrue("If rule is applied, result modified flag set", obj.modified);
@@ -314,6 +316,7 @@ test.isTrue("If rule is applied, result == target",  obj.equals(new WebObject('{
 
 rule = new WebObject('{ "hello": "/world/world/" }');
 
+obj.modified=false;
 rule.applyTo(obj);
 
 test.isTrue("If rule is applied but result unchanged, result modified flag not set", !obj.modified);

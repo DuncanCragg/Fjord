@@ -36,6 +36,8 @@ function WebObject(json, rules){
     }
     else this.json = {};
     this.rules = rules;
+    this.oldrefs={};
+    this.newrefs={};
     this.refs = [];
     Cache[this.owid]=this;
 }
@@ -58,11 +60,10 @@ WebObject.prototype.equals = function(that){
 }
 
 WebObject.prototype.applyTo = function(that){
-    that.modified=false;
     that.json["%owid"]=that.owid;
     that.json["%etag"]=that.etag+"";
     that.json["%refs"]=that.refs;
-    var applyjson= new Applier(this.json, that.json, { "%owid": that.owid }).apply();
+    var applyjson=new Applier(this.json, that.json, { "%owid": that.owid }, that.newrefs).apply();
     if(applyjson!=null && applyjson!==that.json){ that.json = applyjson; that.modified=true; }
     delete that.json["%refs"];
     delete that.json["%etag"];
@@ -73,13 +74,29 @@ WebObject.prototype.applyTo = function(that){
 WebObject.prototype.apply = function(rule){ return rule.applyTo(this); }
 
 WebObject.prototype.runRules = function(){
+
     if(!this.rules) return;
-    var mod=false;
-    for(var i in this.rules){
-        Cache[this.rules[i]].applyTo(this);
-        if(this.modified) mod=true;
+    this.modified=false;
+    for(var i in this.rules) Cache[this.rules[i]].applyTo(this);
+
+    for(var owid in this.oldrefs){
+        if(this.newrefs[owid]===undefined){
+            var o=Cache[owid];
+            removeFrom(o.refs, this.owid);
+            Cache.notify(owid);
+        }
     }
-    if(mod){
+    for(var owid in this.newrefs){
+        if(this.oldrefs[owid]===undefined){
+            var o=Cache[owid];
+            addIfNotIn(o.refs, this.owid);
+            Cache.notify(owid);
+        }
+    }
+    this.oldrefs=this.newrefs;
+    this.newrefs={};
+
+    if(this.modified){
         this.etag++;
         this.notifyRefs();
         if(WebObject.logUpdates) sys.puts("------------------\n"+JSON.stringify(this));
@@ -96,18 +113,19 @@ WebObject.prototype.toString = function(){ return JSON.stringify(this.json); }
 
 // -----------------------------------------------------------------------
 
-function Applier(j1, j2, bindings){
-    this.j1=j1;
-    this.j2=j2;
+function Applier(json1, json2, bindings, newrefs){
+    this.json1=json1;
+    this.json2=json2;
     this.bindings=bindings;
+    this.newrefs=newrefs;
 }
 
-Applier.prototype.apply = function(){ return this.applyTo(this.j1, this.j2, this.bindings); }
+Applier.prototype.apply = function(){ return this.applyTo(this.json1, this.json2, this.bindings); }
 
 Applier.prototype.cacheGET = function(owid, refid){
     var o=Cache[owid];
     if(!o) return null;
-    if(addIfNotIn(o.refs, refid)) Cache.notify(owid);
+    this.newrefs[owid]=true;
     j=o.json;
     j["%owid"]=owid;
     return j;
@@ -334,6 +352,8 @@ Applier.prototype.resolveHas = function(lhs, rhs){
     return lhs;
 }
 
+// -----------------------------------------------------------------------
+
 function evaluate(expression){
     try{
         var evaled=eval(expression);
@@ -353,6 +373,12 @@ function isin(arr, item){
 function addIfNotIn(arr, item){
     if(!isin(arr, item)){ arr.push(item); return true; }
     return false;
+}
+
+function removeFrom(arr, item){
+    for(var i=0; i<arr.length; i++) { 
+        if(arr[i]==item) arr.splice(i,1);
+    } 
 }
 
 // -----------------------------------------------------------------------
