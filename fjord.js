@@ -22,6 +22,15 @@ exports.Cache = Cache;
 
 // -----------------------------------------------------------------------
 
+WebObject.create = function(json, rules){
+    var o = new WebObject(json, rules);
+    if(rules){
+        Cache.notify(o.owid);
+        Cache.runRulesOnNotifiedObjects();
+    }
+    return o.owid;
+}
+
 function WebObject(json, rules){
     this.owid = owid();
     this.etag = 0;
@@ -36,30 +45,47 @@ function WebObject(json, rules){
     }
     else this.json = {};
     this.rules = rules;
-    this.oldrefs={};
-    this.newrefs={};
+    this.outlinks={};
     this.refs = {};
     Cache[this.owid]=this;
 }
 
-WebObject.create = function(json, rules){
-    var o = new WebObject(json, rules);
-    if(rules){
-        Cache.notify(o.owid);
-        Cache.runRulesOnNotifiedObjects();
-    }
-    return o.owid;
-}
+WebObject.prototype.runRules = function(){
 
-WebObject.prototype.equals = function(that){ 
-    return deepEqual(this.json, that.json);
+    if(!this.rules) return;
+    this.modified=false;
+    this.newlinks={};
+    for(var i in this.rules) Cache[this.rules[i]].applyTo(this);
+
+    for(var owid in this.outlinks){
+        if(this.newlinks[owid]===undefined){
+            var o=Cache[owid];
+            delete o.refs[this.owid];
+            Cache.notify(owid);
+        }
+    }
+    for(var owid in this.newlinks){
+        if(this.outlinks[owid]===undefined){
+            var o=Cache[owid];
+            o.refs[this.owid]=true;
+            Cache.notify(owid);
+        }
+    }
+    this.outlinks=this.newlinks;
+    delete this.newlinks;
+
+    if(this.modified){
+        this.etag++;
+        this.notifyRefs();
+        if(WebObject.logUpdates) sys.puts("------------------\n"+JSON.stringify(this));
+    }
 }
 
 WebObject.prototype.applyTo = function(that){
     that.json["%owid"]=that.owid;
     that.json["%etag"]=that.etag+"";
     that.json["%refs"]=getTags(that.refs);
-    var applyjson=new Applier(this.json, that.json, { "%owid": that.owid }, that.newrefs).apply();
+    var applyjson=new Applier(this.json, that.json, { "%owid": that.owid }, that.newlinks).apply();
     if(applyjson!=null && applyjson!==that.json){ that.json = applyjson; that.modified=true; }
     delete that.json["%refs"];
     delete that.json["%etag"];
@@ -69,65 +95,39 @@ WebObject.prototype.applyTo = function(that){
 
 WebObject.prototype.apply = function(rule){ return rule.applyTo(this); }
 
-WebObject.prototype.runRules = function(){
-
-    if(!this.rules) return;
-    this.modified=false;
-    for(var i in this.rules) Cache[this.rules[i]].applyTo(this);
-
-    for(var owid in this.oldrefs){
-        if(this.newrefs[owid]===undefined){
-            var o=Cache[owid];
-            delete o.refs[this.owid];
-            Cache.notify(owid);
-        }
-    }
-    for(var owid in this.newrefs){
-        if(this.oldrefs[owid]===undefined){
-            var o=Cache[owid];
-            o.refs[this.owid]=true;
-            Cache.notify(owid);
-        }
-    }
-    this.oldrefs=this.newrefs;
-    this.newrefs={};
-
-    if(this.modified){
-        this.etag++;
-        this.notifyRefs();
-        if(WebObject.logUpdates) sys.puts("------------------\n"+JSON.stringify(this));
-    }
-}
-
 WebObject.prototype.notifyRefs = function(){
     for(var i in this.refs) Cache.notify(i);
 }
 
 WebObject.prototype.toString = function(){ return JSON.stringify(this.json); }
 
+WebObject.prototype.equals = function(that){ 
+    return deepEqual(this.json, that.json);
+}
+
 exports.WebObject = WebObject;
 
 // -----------------------------------------------------------------------
 
-function Applier(json1, json2, bindings, newrefs){
+function Applier(json1, json2, bindings, newlinks){
     this.json1=json1;
     this.json2=json2;
     this.bindings=bindings;
-    this.newrefs=newrefs;
+    this.newlinks=newlinks;
 }
 
-Applier.prototype.apply = function(){ return this.applyTo(this.json1, this.json2, this.bindings); }
+Applier.prototype.apply = function(){ return this.applyJSON(this.json1, this.json2, this.bindings); }
 
 Applier.prototype.cacheGET = function(owid, refid){
     var o=Cache[owid];
     if(!o) return null;
-    this.newrefs[owid]=true;
+    if(this.newlinks) this.newlinks[owid]=true;
     j=o.json;
     j["%owid"]=owid;
     return j;
 }
 
-Applier.prototype.applyTo = function(j1, j2, bindings){
+Applier.prototype.applyJSON = function(j1, j2, bindings){
     if(j2===undefined) return null;
     var a2=null;
     var t1=j1? j1.constructor: null;
@@ -155,7 +155,7 @@ Applier.prototype.applyToArray = function(j1, j2, a2, bindings){
         ourbind.iteration=it;
         var v1 = j1[k1];
         var v2 = j2[k2];
-        var v3=this.applyTo(v1, v2, ourbind);
+        var v3=this.applyJSON(v1, v2, ourbind);
         if(v3==null) continue;
         k1++;
         if(k1==j1.length){
@@ -182,7 +182,7 @@ Applier.prototype.applyToObject = function(j1, j2, a2, bindings){
     for(var k in j1){
         var v1 = j1[k];
         var v2 = y2[k]; if(v2===null) v2="";
-        var v3=this.applyTo(v1, v2, ourbind);
+        var v3=this.applyJSON(v1, v2, ourbind);
         if(v3==null){ if(a2) delete a2["%owid"]; return null; }
         if(a2) continue;
         if(v3.modified || v3!=v2){
