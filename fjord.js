@@ -316,7 +316,8 @@ Applier.prototype.handleBindings = function(and, lhs, bindings){
 
 Applier.prototype.resolve = function(lhs, rhs, bindings){
     rhs=this.resolveBindings(rhs, bindings);
-    if(rhs.match(/^has\(/)) return this.resolveHas(lhs, rhs);
+    if(rhs.match(/^has\(/))  return this.resolveHas(lhs, rhs);
+    if(rhs.match(/^add!\(/)) return this.resolveAdd(lhs, rhs);
     rhs = evaluate(rhs);
     rhs.modified=true;
     return rhs;
@@ -330,8 +331,7 @@ Applier.prototype.resolveBindings = function(rhs, bindings){
         var val = bindings[variable];
         if(!val){ sys.puts("** No binding for $"+variable); continue; }
         if(val.constructor===Array && val.length==1) val=val[0];
-        if(val.constructor!==String) val=JSON.stringify(val);
-        rhs=rhs.replace("$"+variable, val, "g");
+        rhs=rhs.replace("$"+variable, JSON.stringify(val), "g");
     }
     return rhs;
 }
@@ -345,6 +345,16 @@ Applier.prototype.resolveHas = function(lhs, rhs){
         if(!addIfNotIn(lhs, arg[i])) continue;
         lhs.modified=true;
     }
+    return lhs;
+}
+
+Applier.prototype.resolveAdd = function(lhs, rhs){
+    var arg=rhs.substring(5,rhs.length-1);
+    arg = evaluate(arg);
+    if(lhs.constructor!==Array) return lhs;
+    if(arg.constructor!==Array) arg = [ arg ];
+    lhs = lhs.concat(arg);
+    lhs.modified=true;
     return lhs;
 }
 

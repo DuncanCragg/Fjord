@@ -368,7 +368,7 @@ test.objectsEqual("Uses variable in rewrite",
             .applyTo(
             new WebObject('{ "a": [ "2.0", "1.0", "3.1" ] }')
             ),
-            new WebObject('{ "a": [ "2.0", "1.0", "3.1 greater than 2.0" ] }')
+            new WebObject('{ "a": [ "2.0", "1.0", "\\\"3.1\\\" greater than \\\"2.0\\\"" ] }')
 );
 
 test.objectsEqual("Correctly fails to match when tag differs but val is empty",
