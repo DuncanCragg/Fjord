@@ -7,6 +7,7 @@ var test = require('./simple-test');
 var fjord = require('./fjord');
 var log       = fjord.log;
 var WebObject = fjord.WebObject;
+var Cache     = fjord.Cache;
 
 
 sys.puts('------------------ Fjord Tests ---------------------');
@@ -382,47 +383,47 @@ test.objectsEqual("Correctly fails to match when tag differs but val is empty",
 // -------------------------------------------------------------------
 
 var there = new WebObject('{ "there": "1.0" }');
-var thereOWID = there.owid;
-test.isTrue("WebObject has a OWID", thereOWID);
+Cache[there.owid]=there;
+test.isTrue("WebObject has a OWID", there.owid);
 
 test.objectsEqual("Jumps link and matches in another object",
             new WebObject('{ "here": { "there": "/number/" }, "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "here": "'+thereOWID+'", "test": "LHS" }')
+            new WebObject('{ "here": "'+there.owid+'", "test": "LHS" }')
             ),
-            new WebObject('{ "here": "'+thereOWID+'", "test": "RHS" }')
+            new WebObject('{ "here": "'+there.owid+'", "test": "RHS" }')
 );
 
 test.objectsEqual("Jumps link and correctly fails to match in another object",
             new WebObject('{ "here": { "there": "/1.1/" }, "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "here": "'+thereOWID+'", "test": "LHS" }')
+            new WebObject('{ "here": "'+there.owid+'", "test": "LHS" }')
             ),
-            new WebObject('{ "here": "'+thereOWID+'", "test": "LHS" }')
+            new WebObject('{ "here": "'+there.owid+'", "test": "LHS" }')
 );
 
 test.objectsEqual("Won't rewrite in linked object",
             new WebObject('{ "here": { "there": "/number/xxx/" }, "test": "/LHS/RHS/" }')
             .applyTo(
-            new WebObject('{ "here": "'+thereOWID+'", "test": "LHS" }')
+            new WebObject('{ "here": "'+there.owid+'", "test": "LHS" }')
             ),
-            new WebObject('{ "here": "'+thereOWID+'", "test": "RHS" }')
+            new WebObject('{ "here": "'+there.owid+'", "test": "RHS" }')
 );
 
 test.objectsEqual("Can see sub-object owid",
             new WebObject('{ "here": "/$owid/", "test": "/LHS/$owid/" }')
             .applyTo(
-            new WebObject('{ "here": "'+thereOWID+'", "test": "LHS" }')
+            new WebObject('{ "here": "'+there.owid+'", "test": "LHS" }')
             ),
-            new WebObject('{ "here": "'+thereOWID+'", "test": "'+thereOWID+'" }')
+            new WebObject('{ "here": "'+there.owid+'", "test": "'+there.owid+'" }')
 );
 
 test.objectsEqual("Can see sub-object owid by %owid",
             new WebObject('{ "here": { "%owid": "/$owid/" }, "test": "/LHS/$owid/" }')
             .applyTo(
-            new WebObject('{ "here": "'+thereOWID+'", "test": "LHS" }')
+            new WebObject('{ "here": "'+there.owid+'", "test": "LHS" }')
             ),
-            new WebObject('{ "here": "'+thereOWID+'", "test": "'+thereOWID+'" }')
+            new WebObject('{ "here": "'+there.owid+'", "test": "'+there.owid+'" }')
 );
 
 // -------------------------------------------------------------------
@@ -572,6 +573,12 @@ var p3 = new WebObject('{ "tags": "person", "age": "15" }');
 var p4 = new WebObject('{ "tags": "person", "age": "35" }');
 var p5 = new WebObject('{ "tags": "person", "age": "-35" }');
 var p6 = new WebObject('{ "tags": "person", "age": "25" }');
+Cache[p1.owid]=p1;
+Cache[p2.owid]=p2;
+Cache[p3.owid]=p3;
+Cache[p4.owid]=p4;
+Cache[p5.owid]=p5;
+Cache[p6.owid]=p6;
 
 test.objectsEqual("Can get owids and ages of adults from person list",
             new WebObject('{ "people": { "%owid": "/$owids/", "tags": "person", "age": "/gt(21);$ages/" }, "adults": "/null/$owids/", "ages": "/null/$ages/" }')
@@ -605,6 +612,7 @@ test.objectsEqual("Won't add again with has() if already there",
 
 var obj=new WebObject('{ "hasowid": [ "foo" ], "test": "LHS" }');
 var owid   =obj.owid;
+Cache[owid]=obj;
 
 
 var rule1 = new WebObject('{ "%owid": "/$owid/", "hasowid": "/array/has($owid)/" }');

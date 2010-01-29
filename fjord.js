@@ -18,12 +18,59 @@ Cache.runRulesOnNotifiedObjects = function(){
     }
 }
 
+Cache.put = function(o){
+    this[o.owid]=o;
+    Persistence.save(o);
+}
+
+Cache.get = function(owid){
+    var o = this[owid];
+    if(!o){
+        o = Persistence.get(owid);
+        if(!o){
+            sys.puts("*** object "+owid+" could not be restored from the DB");
+            return null;
+        }
+        this[owid] = o;
+    }
+    return o;
+}
+
+Cache.evict = function(owid){
+    delete this[owid];
+}
+
 exports.Cache = Cache;
+
+// -----------------------------------------------------------------------
+
+var Dirty = require('./dirty').Dirty;
+
+var Persistence = { };
+
+Persistence.init = function(){
+    this.db = new Dirty('fjord.db', { flushInterval: 10 });
+    this.db.load().addCallback(Persistence.dbload);
+}
+
+Persistence.dbload = function(){
+}
+
+Persistence.save = function(o){
+    this.db.set(o.owid, o);
+}
+
+Persistence.get = function(owid){
+    return this.db.get(owid);
+}
+
+Persistence.init();
 
 // -----------------------------------------------------------------------
 
 WebObject.create = function(json, rules){
     var o = new WebObject(json, rules);
+    Cache.put(o);
     if(rules){
         Cache.notify(o.owid);
         Cache.runRulesOnNotifiedObjects();
@@ -47,7 +94,6 @@ function WebObject(json, rules){
     this.rules = rules;
     this.outlinks={};
     this.refs = {};
-    Cache[this.owid]=this;
 }
 
 WebObject.prototype.runRules = function(){
@@ -119,7 +165,7 @@ function Applier(json1, json2, bindings, newlinks){
 Applier.prototype.apply = function(){ return this.applyJSON(this.json1, this.json2, this.bindings); }
 
 Applier.prototype.cacheGET = function(owid, refid){
-    var o=Cache[owid];
+    var o=Cache.get(owid);
     if(!o) return null;
     if(this.newlinks) this.newlinks[owid]=true;
     j=o.json;
@@ -434,6 +480,10 @@ function min(v){
 
 function fix(n,x){
     return Math.round(x*Math.pow(10,n))/Math.pow(10,n);
+}
+
+function number(n){
+    return n.constructor===String? parseFloat(n): n;
 }
 
 // -----------------------------------------------------------------------
