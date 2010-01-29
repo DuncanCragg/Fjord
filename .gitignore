@@ -1,0 +1,4 @@
+# git-ls-files --others --exclude-from=.gitignore
+.*.swp
+*.db
+doc/local/
