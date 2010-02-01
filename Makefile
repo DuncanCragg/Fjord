@@ -1,5 +1,5 @@
 
 test:
 	rm fjord.db
-	( node language-tests.js; node observer-tests.js; node db-driver-tests.js; node instrument-tests.js ) | egrep Pass
+	( node language-tests.js; node observer-tests.js; node persistence-tests.js; node network-tests.js; node instrument-tests.js ) | egrep Pass
 	

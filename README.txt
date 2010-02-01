@@ -11,7 +11,8 @@ run tests:
 
 $ node language-tests.js
 $ node observer-tests.js
-$ node db-driver-tests.js
+$ node persistence-tests.js
+$ node network-tests.js
 $ node instrument-tests.js
 
 or:

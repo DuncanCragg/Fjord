@@ -11,7 +11,7 @@ var WebObject = fjord.WebObject;
 var Cache     = fjord.Cache;
 
 
-sys.puts('------------------ Fjord DB Driver Tests ---------------------');
+sys.puts('------------------ Fjord Persistence Tests ---------------------');
 
 WebObject.logUpdates=false;
 
