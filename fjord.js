@@ -5,6 +5,9 @@ var assert = require('assert');
 var persistence = require('./persistence');
 var Persistence = persistence.Persistence;
 
+var networking = require('./networking');
+var Networking = networking.Networking;
+
 // -----------------------------------------------------------------------
 
 Persistence.init();
@@ -54,13 +57,6 @@ Cache.makeShell = function(owid){
 }
 
 exports.Cache = Cache;
-
-// -----------------------------------------------------------------------
-
-var Networking = { };
-
-Networking.get = function(owid){
-}
 
 // -----------------------------------------------------------------------
 
