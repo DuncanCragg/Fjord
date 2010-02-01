@@ -28,8 +28,8 @@ Cache.get = function(owid){
     if(!o){
         o = Persistence.get(owid);
         if(!o){
-            sys.puts("*** object "+owid+" could not be restored from the DB");
-            return null;
+            o = this.makeShell(owid);
+            Networking.get(owid);
         }
         this[owid] = o;
     }
@@ -38,6 +38,12 @@ Cache.get = function(owid){
 
 Cache.evict = function(owid){
     delete this[owid];
+}
+
+Cache.makeShell = function(owid){
+    var o = new WebObject({});
+    o.owid = owid;
+    return o;
 }
 
 exports.Cache = Cache;
@@ -49,7 +55,7 @@ var Dirty = require('./dirty').Dirty;
 var Persistence = { };
 
 Persistence.init = function(){
-    this.db = new Dirty('fjord.db', { flushInterval: 10 });
+    this.db = new Dirty('./fjord.db', { flushInterval: 10 });
     this.db.load().addCallback(Persistence.dbload);
 }
 
@@ -65,6 +71,13 @@ Persistence.get = function(owid){
 }
 
 Persistence.init();
+
+// -----------------------------------------------------------------------
+
+var Networking = { };
+
+Networking.get = function(owid){
+}
 
 // -----------------------------------------------------------------------
 
@@ -446,7 +459,7 @@ function deepEqual(o1, o2){
 }
 
 function log(message, value){
-    sys.puts("------------------\n"+message+JSON.stringify(value));
+    sys.puts("------------------\n"+message+" "+(value!=null? JSON.stringify(value): ""));
 }
 
 exports.log = log;

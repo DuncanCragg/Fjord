@@ -34,6 +34,21 @@ function isFalse(message, condition){
     if(fails) sys.puts("FAILs: "+fails);
 }
 
+function isEqual(message, actual, expected){
+    sys.puts("-------------------\n"+message);
+    try{
+        assert.deepEqual(actual, expected);
+        sys.puts("Result: "+JSON.stringify(actual)); 
+        sys.puts("..OK");
+        oks++;
+    } catch(e) {
+        sys.puts("** FAIL, expected:\n"+JSON.stringify(expected)+"\n--- got:\n"+JSON.stringify(actual)); 
+        fails++;
+        faildescriptions.push(message);
+    }
+    if(fails) sys.puts("FAILs: "+fails);
+}
+
 function objectsEqual(message, actual, expected){
     sys.puts("-------------------\n"+message);
     try{
@@ -63,6 +78,7 @@ function summary(){
 
 exports.isTrue = isTrue;
 exports.isFalse = isFalse;
+exports.isEqual = isEqual;
 exports.objectsEqual = objectsEqual;
 exports.summary = summary;
 
