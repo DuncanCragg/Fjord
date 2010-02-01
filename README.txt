@@ -12,7 +12,7 @@ run tests:
 $ node language-tests.js
 $ node observer-tests.js
 $ node persistence-tests.js
-$ node network-tests.js
+$ node networking-tests.js
 $ node instrument-tests.js
 
 or:
