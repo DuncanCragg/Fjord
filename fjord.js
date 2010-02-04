@@ -42,9 +42,10 @@ Cache.get = function(owid){
     return o;
 }
 
-Cache.push = function(o){
-    var oc = Cache[o.owid];
-    oc.content = o.content;
+Cache.push = function(owid, etag, content){
+    var oc = Cache[owid];
+    oc.etag = etag;
+    oc.content = content;
     oc.notifyRefs();
     this.runRulesOnNotifiedObjects();
 }

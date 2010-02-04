@@ -20,16 +20,18 @@ init: function(cache, config){
 newRequest: function(req, res){
 
   ; sys.puts("----------------------------------------");
-  ; sys.puts("http="+JSON.stringify(req.httpVersion));
-  ; sys.puts("method="+JSON.stringify(req.method));
   ; sys.puts("path="+JSON.stringify(req.url));
   ; sys.puts("headers="+JSON.stringify(req.headers));
   ; sys.puts("----------------------------------------");
 
     var owid = extractOWID(req.url);
     var o = Cache.get(owid);
-    var os = JSON.stringify(o);
-    res.sendHeader(200, { 'Content-Type': 'application/json' });
+    var os = JSON.stringify(o.content);
+    var headers = { "Content-Type": "application/json",
+                    "Content-Location": owid,
+                    "Etag": '"'+o.etag+'"' 
+    };
+    res.sendHeader(200, headers);
     res.sendBody(os+"\n");
     res.finish();
   ; sys.puts("200 OK; "+os.length);
@@ -52,12 +54,14 @@ headersIn: function(response){
   ; sys.puts("----------------------------------------");
   ; sys.puts(response.statusCode + ": " + JSON.stringify(response.headers));
 
+    var owid = response.headers["content-location"];
+    var etag = parseInt(response.headers["etag"].substring(1));
     var body = "";
     response.setBodyEncoding("utf8");
     response.addListener("body", function(chunk){ body+=chunk; });
     response.addListener("complete", function(){
-        var o = JSON.parse(body);  
-        Cache.push(o);
+        var content = JSON.parse(body);  
+        Cache.push(owid, etag, content);
   ;     sys.puts("----------------------------------------");
     });
 }

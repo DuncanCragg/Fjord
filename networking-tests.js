@@ -57,19 +57,23 @@ var o1obj=null;
 http.createClient(8080, "localhost")
     .request("GET", "/a/b/c/owid-ca0b-0a35-9289-9f8a.json", { "Host": "localhost:8080" })
     .finish(function(response){
+        var owid = response.headers["content-location"];
+        var etag = parseInt(response.headers["etag"].substring(1));
         var body = "";
         response.setBodyEncoding("utf8");
         response.addListener("body", function(chunk){ body+=chunk; });
-        response.addListener("complete", function(){ o1rule1 = JSON.parse(body); });
+        response.addListener("complete", function(){ o1rule1 = { "owid": owid, "etag": etag, "content": JSON.parse(body) }; });
     });
 
 http.createClient(8080, "localhost")
     .request("GET", "/x/y/z/owid-73c2-4046-fe02-7312.json", { "Host": "localhost:8080" })
     .finish(function(response){
+        var owid = response.headers["content-location"];
+        var etag = parseInt(response.headers["etag"].substring(1));
         var body = "";
         response.setBodyEncoding("utf8");
         response.addListener("body", function(chunk){ body+=chunk; });
-        response.addListener("complete", function(){ o1obj = JSON.parse(body); });
+        response.addListener("complete", function(){ o1obj = { "owid": owid, "etag": etag, "content": JSON.parse(body) }; });
     });
 
 // -------------------------------------------------------------------
@@ -79,25 +83,18 @@ process.addListener("exit", function () {
     test.isEqual("Test Server returned correct o1 rule on direct fetch", o1rule1,
                  {"owid":"owid-ca0b-0a35-9289-9f8a",
                   "etag":1,
-                  "content":{"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"},
-                  "outlinks":{},
-                  "refs":{},
-                  "_id":"owid-ca0b-0a35-9289-9f8a"
+                  "content":{"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"}
                  });
 
     test.isEqual("Test Server returned correct o1 on direct fetch", o1obj,
                  {"owid":"owid-73c2-4046-fe02-7312",
                   "etag":3,
-                  "content":{"tags":"one","state":"0"},
-                  "rules":["owid-ca0b-0a35-9289-9f8a","owid-f2aa-1220-18d4-9a03"],
-                  "outlinks":{},
-                  "refs":{},
-                  "_id":"owid-73c2-4046-fe02-7312"
+                  "content":{"tags":"one","state":"0"}
                  });
 
     test.jsonEqual("Full o1 is now in place", Cache[o1],
                    {"owid":o1,
-                    "etag":0,
+                    "etag":3,
                     "content":{"tags":"one","state":"0"},
                     "outlinks":{},
                     "refs": expectedRefs

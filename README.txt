@@ -17,7 +17,7 @@ $ ./networking-tests.js
 
 or:
 
-make test
+make tests
 
 
 
