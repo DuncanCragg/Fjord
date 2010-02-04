@@ -8,8 +8,10 @@ init: function(config){
     this.thisPort  = (config && config.thisPort ) || 8080;
     this.nexusHost = (config && config.nexusHost) || "localhost";
     this.nexusPort = (config && config.nexusPort) || 8080;
-    this.nexusClient = http.createClient(this.nexusPort, this.nexusHost);
-    this.thisServer  = http.createServer(this.newRequest).listen(this.thisPort);
+    if(this.nexusPort>0) this.nexusClient = http.createClient(this.nexusPort, this.nexusHost);
+    if(this.thisPort >0) this.thisServer  = http.createServer(this.newRequest).listen(this.thisPort);
+    if(this.nexusPort>0) sys.puts("Nexus at "+this.nexusHost+":"+this.nexusPort);
+    if(this.thisPort >0) sys.puts("Listening on "+this.thisPort);
 },
 
 newRequest: function(req, res){

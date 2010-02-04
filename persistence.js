@@ -1,4 +1,6 @@
 
+var sys = require('sys');
+
 var Dirty = require('./dirty').Dirty;
 
 var Persistence = { };
@@ -7,6 +9,7 @@ Persistence.init = function(config){
     this.dbFileName = (config && config.dbFileName) || "./fjord.db";
     this.db = new Dirty(this.dbFileName, { flushInterval: 10 });
     this.db.load().addCallback(Persistence.dbload);
+    sys.puts("DB file is "+this.dbFileName);
 }
 
 Persistence.dbload = function(){
