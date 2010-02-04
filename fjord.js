@@ -10,13 +10,6 @@ var Networking = networking.Networking;
 
 // -----------------------------------------------------------------------
 
-exports.init = function(config){
-    Persistence.init(config);
-    Networking.init(config);
-}
-
-// -----------------------------------------------------------------------
-
 var Cache = { "notifyqueue": [] };
 
 Cache.notify = function(owid){
@@ -47,6 +40,9 @@ Cache.get = function(owid){
         this[owid] = o;
     }
     return o;
+}
+
+Cache.push = function(o){
 }
 
 Cache.evict = function(owid){
@@ -397,6 +393,13 @@ Applier.prototype.resolveAdd = function(lhs, rhs){
     lhs = lhs.concat(arg);
     lhs.modified=true;
     return lhs;
+}
+
+// -----------------------------------------------------------------------
+
+exports.init = function(config){
+    Persistence.init(config);
+    Networking.init(Cache, config);
 }
 
 // -----------------------------------------------------------------------

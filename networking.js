@@ -2,9 +2,12 @@
 var sys = require('sys');
 var http = require('http');
 
+var Cache = null;
+
 exports.Networking = { 
 
-init: function(config){
+init: function(cache, config){
+    Cache = cache;
     this.thisPort  = (config && config.thisPort ) || 8080;
     this.nexusHost = (config && config.nexusHost) || "localhost";
     this.nexusPort = (config && config.nexusPort) || 8080;
@@ -19,25 +22,23 @@ newRequest: function(req, res){
   ; sys.puts("----------------------------------------");
   ; sys.puts("http="+JSON.stringify(req.httpVersion));
   ; sys.puts("method="+JSON.stringify(req.method));
-  ; sys.puts("url="+JSON.stringify(req.url));
+  ; sys.puts("path="+JSON.stringify(req.url));
   ; sys.puts("headers="+JSON.stringify(req.headers));
   ; sys.puts("----------------------------------------");
 
+    var owid = extractOWID(req.url);
+    var o = Cache.get(owid);
+    var os = JSON.stringify(o);
     res.sendHeader(200, { 'Content-Type': 'application/json' });
-    var o = { "owid":"owid-73c2-4046-fe02-7312",
-              "etag": 0,
-              "json":{"tags":"one","state":"0"},
-              "rules":["owid-ca0b-0a35-9289-9f8a","owid-f2aa-1220-18d4-9a03"],
-              "outlinks":{},
-              "refs":{},
-              "_id":"owid-73c2-4046-fe02-7312"
-    };
-    res.sendBody(JSON.stringify(o)+"\n");
+    res.sendBody(os+"\n");
     res.finish();
+  ; sys.puts("200 OK; "+os.length);
+  ; sys.puts("----------------------------------------");
 },
 
 get: function(owid){
-    var url = "/123.js";
+    if(!this.nexusClient) return;
+    var url = "/a/b/c/"+owid+".json";
     var headers = {
         "Host": this.nexusHost+":"+this.nexusPort,
         "User-Agent": "Fjord",  
@@ -49,25 +50,24 @@ get: function(owid){
 headersIn: function(response){
 
   ; sys.puts("----------------------------------------");
-  ; sys.puts("status: " + response.statusCode);
-  ; sys.puts("headers: " + JSON.stringify(response.headers));
-  ; sys.puts("----------------------------------------");
+  ; sys.puts(response.statusCode + ": " + JSON.stringify(response.headers));
 
     var body = "";
     response.setBodyEncoding("utf8");
     response.addListener("body", function(chunk){ body+=chunk; });
     response.addListener("complete", function(){
-
-  ;     sys.puts("----------------------------------------");
-  ;     sys.puts("complete: \n"+body);
         var o = JSON.parse(body);  
+        Cache.push(o);
   ;     sys.puts(JSON.stringify(o));
-  ;     if(o.error) sys.puts("Error: " + o.error);  
+  ;     sys.puts(JSON.stringify(Cache[o.owid]));
   ;     sys.puts("----------------------------------------");
-
     });
 }
 
 };
 
+function extractOWID(url){
+    var a = url.match(/(owid-[-0-9a-z]+)\.json$/);
+    return (a && a[1])? a[1]: null;
+}
 

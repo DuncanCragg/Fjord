@@ -49,21 +49,35 @@ test.isEqual("Refs of shell are o2 and o3", Cache[o1].refs, expectedRefs);
 
 // -------------------------------------------------------------------
 
-var o1candidate=null;
+var o1rule1=null;
+var o1obj=null;
 
 http.createClient(8080, "localhost")
-    .request("GET", "/", { "Host": "localhost:8080" })
+    .request("GET", "/a/b/c/owid-ca0b-0a35-9289-9f8a.json", { "Host": "localhost:8080" })
     .finish(function(response){
         var body = "";
         response.setBodyEncoding("utf8");
         response.addListener("body", function(chunk){ body+=chunk; });
-        response.addListener("complete", function(){ o1candidate = JSON.parse(body); });
+        response.addListener("complete", function(){ o1rule1 = JSON.parse(body); });
+    });
+
+http.createClient(8080, "localhost")
+    .request("GET", "/x/y/z/owid-73c2-4046-fe02-7312.json", { "Host": "localhost:8080" })
+    .finish(function(response){
+        var body = "";
+        response.setBodyEncoding("utf8");
+        response.addListener("body", function(chunk){ body+=chunk; });
+        response.addListener("complete", function(){ o1obj = JSON.parse(body); });
     });
 
 // -------------------------------------------------------------------
 
 process.addListener("exit", function () {
-    test.isEqual("Test Server returned correct o1 on direct fetch", o1candidate,
+
+    test.isEqual("Test Server returned correct o1 rule on direct fetch", o1rule1,
+                 {"owid":"owid-ca0b-0a35-9289-9f8a","etag":0,"json":{"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"},"outlinks":{},"refs":{},"_id":"owid-ca0b-0a35-9289-9f8a"});
+
+    test.isEqual("Test Server returned correct o1 on direct fetch", o1obj,
                  {"owid":"owid-73c2-4046-fe02-7312","etag":0,"json":{"tags":"one","state":"0"},"rules":["owid-ca0b-0a35-9289-9f8a","owid-f2aa-1220-18d4-9a03"],"outlinks":{},"refs":{},"_id":"owid-73c2-4046-fe02-7312"});
 
     test.summary();
