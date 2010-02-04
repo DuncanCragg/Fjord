@@ -10,7 +10,7 @@ var WebObject = fjord.WebObject;
 var Cache     = fjord.Cache;
 
 
-sys.puts('------------------ Fjord Tests ---------------------');
+sys.puts('------------------ Fjord Observer Tests ---------------------');
 
 // -------------------------------------------------------------------
 

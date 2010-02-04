@@ -11,7 +11,9 @@ var WebObject = fjord.WebObject;
 var Cache     = fjord.Cache;
 
 
-sys.puts('------------------ Fjord Network Tests ---------------------');
+fjord.init();
+
+sys.puts('------------------ Fjord Networking Tests ---------------------');
 
 WebObject.logUpdates=false;
 

@@ -10,7 +10,7 @@ var log       = fjord.log;
 var WebObject = fjord.WebObject;
 var Cache     = fjord.Cache;
 
+fjord.init();
 
 
-log("test server running", null);
 

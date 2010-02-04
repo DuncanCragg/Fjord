@@ -10,7 +10,10 @@ var Networking = networking.Networking;
 
 // -----------------------------------------------------------------------
 
-Persistence.init();
+exports.init = function(config){
+    Persistence.init(config);
+    Networking.init(config);
+}
 
 // -----------------------------------------------------------------------
 
