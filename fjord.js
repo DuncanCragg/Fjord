@@ -45,6 +45,8 @@ Cache.get = function(owid){
 Cache.push = function(o){
     var oc = Cache[o.owid];
     oc.json = o.json;
+    oc.notifyRefs();
+    this.runRulesOnNotifiedObjects();
 }
 
 Cache.evict = function(owid){

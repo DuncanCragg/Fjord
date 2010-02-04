@@ -34,8 +34,10 @@ test.isEqual("OWID of shell is o1", Cache[o1].owid, o1);
 test.isEqual("JSON of shell is empty", Cache[o1].json, {});
 
 var expectedRefs = {}; expectedRefs[o2]=true;
+var expectedOutlinks = {}; expectedOutlinks[o1]=true;
 
 test.isEqual("Refs of shell are just o2", Cache[o1].refs, expectedRefs);
+test.isEqual("Outlinks of o2 are just o1", Cache[o2].outlinks, expectedOutlinks);
 
 rules3 = [
   WebObject.create('{ "tags": "thr", "o1": { "tags": "one", "state": "/number;$n/" }, "state": "/number/fix(1,number($n)+0.1)/" }'),
@@ -99,6 +101,17 @@ process.addListener("exit", function () {
                     "json":{"tags":"one","state":"0"},
                     "outlinks":{},
                     "refs": expectedRefs
+                   });
+
+    test.jsonEqual("Now o2 has new state", Cache[o2],
+                   {"owid":o2,
+                    "etag":1,
+                    "json":{ "tags": "two", "state": "0.1", "o1": o1 },
+                    "rules": rules2,
+                    "outlinks":expectedOutlinks,
+                    "refs": {},
+                    "_id":o2,
+                    "modified": true
                    });
 
     // ---------------------------------------------------------------
