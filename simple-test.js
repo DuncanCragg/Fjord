@@ -9,7 +9,7 @@ var faildescriptions = [];
 function isTrue(message, condition){
     sys.puts("-------------------\n"+message);
     try{
-        assert.ok(condition, message);
+        assert.ok(condition);
         sys.puts("..OK");
         oks++;
     } catch(e) {
@@ -23,7 +23,7 @@ function isTrue(message, condition){
 function isFalse(message, condition){
     sys.puts("-------------------\n"+message);
     try{
-        assert.ok(!condition, message);
+        assert.ok(!condition);
         sys.puts("..OK");
         oks++;
     } catch(e) {
@@ -49,10 +49,25 @@ function isEqual(message, actual, expected){
     if(fails) sys.puts("FAILs: "+fails);
 }
 
+function jsonEqual(message, actual, expected){
+    sys.puts("-------------------\n"+message);
+    try{
+        assert.ok(JSON.stringify(actual)==JSON.stringify(expected));
+        sys.puts("Result: "+JSON.stringify(actual)); 
+        sys.puts("..OK");
+        oks++;
+    } catch(e) {
+        sys.puts("** FAIL, expected:\n"+JSON.stringify(expected)+"\n--- got:\n"+JSON.stringify(actual)); 
+        fails++;
+        faildescriptions.push(message);
+    }
+    if(fails) sys.puts("FAILs: "+fails);
+}
+
 function objectsEqual(message, actual, expected){
     sys.puts("-------------------\n"+message);
     try{
-        assert.ok(actual.equals(expected), message);
+        assert.ok(actual.equals(expected));
         sys.puts("Result: "+actual); 
         sys.puts("..OK");
         oks++;
@@ -79,6 +94,7 @@ function summary(){
 exports.isTrue = isTrue;
 exports.isFalse = isFalse;
 exports.isEqual = isEqual;
+exports.jsonEqual = jsonEqual;
 exports.objectsEqual = objectsEqual;
 exports.summary = summary;
 

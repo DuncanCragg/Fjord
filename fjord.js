@@ -43,6 +43,8 @@ Cache.get = function(owid){
 }
 
 Cache.push = function(o){
+    var oc = Cache[o.owid];
+    oc.json = o.json;
 }
 
 Cache.evict = function(owid){

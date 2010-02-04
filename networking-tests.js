@@ -75,10 +75,33 @@ http.createClient(8080, "localhost")
 process.addListener("exit", function () {
 
     test.isEqual("Test Server returned correct o1 rule on direct fetch", o1rule1,
-                 {"owid":"owid-ca0b-0a35-9289-9f8a","etag":0,"json":{"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"},"outlinks":{},"refs":{},"_id":"owid-ca0b-0a35-9289-9f8a"});
+                 {"owid":"owid-ca0b-0a35-9289-9f8a",
+                  "etag":0,
+                  "json":{"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"},
+                  "outlinks":{},
+                  "refs":{},
+                  "_id":"owid-ca0b-0a35-9289-9f8a"
+                 });
 
     test.isEqual("Test Server returned correct o1 on direct fetch", o1obj,
-                 {"owid":"owid-73c2-4046-fe02-7312","etag":0,"json":{"tags":"one","state":"0"},"rules":["owid-ca0b-0a35-9289-9f8a","owid-f2aa-1220-18d4-9a03"],"outlinks":{},"refs":{},"_id":"owid-73c2-4046-fe02-7312"});
+                 {"owid":"owid-73c2-4046-fe02-7312",
+                  "etag":0,
+                  "json":{"tags":"one","state":"0"},
+                  "rules":["owid-ca0b-0a35-9289-9f8a","owid-f2aa-1220-18d4-9a03"],
+                  "outlinks":{},
+                  "refs":{},
+                  "_id":"owid-73c2-4046-fe02-7312"
+                 });
+
+    test.jsonEqual("Full o1 is now in place", Cache[o1],
+                   {"owid":"owid-73c2-4046-fe02-7312",
+                    "etag":0,
+                    "json":{"tags":"one","state":"0"},
+                    "outlinks":{},
+                    "refs": expectedRefs
+                   });
+
+    // ---------------------------------------------------------------
 
     test.summary();
 });

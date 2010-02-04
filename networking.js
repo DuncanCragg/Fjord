@@ -58,8 +58,6 @@ headersIn: function(response){
     response.addListener("complete", function(){
         var o = JSON.parse(body);  
         Cache.push(o);
-  ;     sys.puts(JSON.stringify(o));
-  ;     sys.puts(JSON.stringify(Cache[o.owid]));
   ;     sys.puts("----------------------------------------");
     });
 }
