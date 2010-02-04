@@ -88,13 +88,13 @@ function WebObject(content, rules){
     }
     else this.content = {};
     this.rules = rules;
-    this.outlinks={};
     this.refs = {};
 }
 
 WebObject.prototype.runRules = function(){
 
     if(!this.rules) return;
+    this.outlinks=this.outlinks || {};
     this.modified=false;
     this.newlinks={};
     for(var i in this.rules) Cache[this.rules[i]].applyTo(this);

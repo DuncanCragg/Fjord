@@ -80,6 +80,8 @@ http.createClient(8080, "localhost")
 
 process.addListener("exit", function () {
 
+    // ---------------------------------------------------------------
+
     test.isEqual("Test Server returned correct o1 rule on direct fetch", o1rule1,
                  {"owid":"owid-ca0b-0a35-9289-9f8a",
                   "etag":1,
@@ -87,16 +89,17 @@ process.addListener("exit", function () {
                  });
 
     test.isEqual("Test Server returned correct o1 on direct fetch", o1obj,
-                 {"owid":"owid-73c2-4046-fe02-7312",
+                 {"owid":o1,
                   "etag":3,
                   "content":{"tags":"one","state":"0"}
                  });
+
+    // ---------------------------------------------------------------
 
     test.jsonEqual("Full o1 is now in place", Cache[o1],
                    {"owid":o1,
                     "etag":3,
                     "content":{"tags":"one","state":"0"},
-                    "outlinks":{},
                     "refs": expectedRefs
                    });
 
@@ -105,9 +108,9 @@ process.addListener("exit", function () {
                     "etag":1,
                     "content":{ "tags": "two", "state": "0.1", "o1": o1 },
                     "rules": rules2,
-                    "outlinks":expectedOutlinks,
                     "refs": {},
                     "_id":o2,
+                    "outlinks":expectedOutlinks,
                     "modified": true
                    });
 
