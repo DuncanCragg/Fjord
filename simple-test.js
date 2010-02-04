@@ -84,7 +84,7 @@ function summary(){
     sys.puts("Pass: "+oks+", Fail: "+fails);
     sys.puts('---------------------------------------------------');
     if(faildescriptions.length){
-    for(i in faildescriptions){
+    for(var i in faildescriptions){
     sys.puts("** FAIL: "+faildescriptions[i]);
     }
     sys.puts('---------------------------------------------------');

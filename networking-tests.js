@@ -12,7 +12,7 @@ var WebObject = fjord.WebObject;
 var Cache     = fjord.Cache;
 
 
-fjord.init({ "thisPort": -1 });
+fjord.init({ "thisPort": 8081 });
 
 sys.puts('------------------ Fjord Networking Tests ---------------------');
 
@@ -39,6 +39,8 @@ var expectedOutlinks = {}; expectedOutlinks[o1]=true;
 test.isEqual("Refs of shell are just o2", Cache[o1].refs, expectedRefs);
 test.isEqual("Outlinks of o2 are just o1", Cache[o2].outlinks, expectedOutlinks);
 
+// -------------------------------------------------------------------
+
 rules3 = [
   WebObject.create('{ "tags": "thr", "o1": { "tags": "one", "state": "/number;$n/" }, "state": "/number/fix(1,number($n)+0.1)/" }'),
 ];
@@ -48,6 +50,7 @@ o3 = WebObject.create('{ "tags": "thr", "state": "0", "o1": "'+o1+'" }', rules3)
 expectedRefs[o3]=true;
 
 test.isEqual("Refs of shell are o2 and o3", Cache[o1].refs, expectedRefs);
+test.isEqual("Outlinks of o3 are just o1", Cache[o2].outlinks, expectedOutlinks);
 
 // -------------------------------------------------------------------
 
@@ -57,23 +60,12 @@ var o1obj=null;
 http.createClient(8080, "localhost")
     .request("GET", "/a/b/c/owid-ca0b-0a35-9289-9f8a.json", { "Host": "localhost:8080" })
     .finish(function(response){
-        var owid = response.headers["content-location"];
+        var owid = response.headers["content-location"].match(/(owid-[-0-9a-z]+)\.json$/)[1];
         var etag = parseInt(response.headers["etag"].substring(1));
         var body = "";
         response.setBodyEncoding("utf8");
         response.addListener("body", function(chunk){ body+=chunk; });
         response.addListener("complete", function(){ o1rule1 = { "owid": owid, "etag": etag, "content": JSON.parse(body) }; });
-    });
-
-http.createClient(8080, "localhost")
-    .request("GET", "/x/y/z/owid-73c2-4046-fe02-7312.json", { "Host": "localhost:8080" })
-    .finish(function(response){
-        var owid = response.headers["content-location"];
-        var etag = parseInt(response.headers["etag"].substring(1));
-        var body = "";
-        response.setBodyEncoding("utf8");
-        response.addListener("body", function(chunk){ body+=chunk; });
-        response.addListener("complete", function(){ o1obj = { "owid": owid, "etag": etag, "content": JSON.parse(body) }; });
     });
 
 // -------------------------------------------------------------------
@@ -88,12 +80,6 @@ process.addListener("exit", function () {
                   "content":{"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"}
                  });
 
-    test.isEqual("Test Server returned correct o1 on direct fetch", o1obj,
-                 {"owid":o1,
-                  "etag":3,
-                  "content":{"tags":"one","state":"0"}
-                 });
-
     // ---------------------------------------------------------------
 
     test.jsonEqual("Full o1 is now in place", Cache[o1],
@@ -103,21 +89,36 @@ process.addListener("exit", function () {
                     "refs": expectedRefs
                    });
 
-    test.jsonEqual("Now o2 has new state", Cache[o2],
+    test.jsonEqual("Now o2 has new state and ref from o1", Cache[o2],
                    {"owid":o2,
                     "etag":1,
                     "content":{ "tags": "two", "state": "0.1", "o1": o1 },
                     "rules": rules2,
-                    "refs": {},
+                    "refs": expectedOutlinks,
                     "_id":o2,
+                    "modified": false,
                     "outlinks":expectedOutlinks,
-                    "modified": true
+                   });
+
+    test.jsonEqual("Now o3 has new state and ref from o1", Cache[o3],
+                   {"owid":o3,
+                    "etag":1,
+                    "content":{ "tags": "thr", "state": "0.1", "o1": o1 },
+                    "rules": rules3,
+                    "refs": {}, //expectedOutlinks,
+                    "_id":o3,
+                    "modified": true,
+                    "outlinks":expectedOutlinks,
                    });
 
     // ---------------------------------------------------------------
 
     test.summary();
 });
+
+// -------------------------------------------------------------------
+
+setTimeout(function(){ fjord.close(); }, 500);
 
 // -------------------------------------------------------------------
 

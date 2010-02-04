@@ -23,5 +23,7 @@ Persistence.get = function(owid){
     return this.db? this.db.get(owid): null;
 }
 
+Persistence.close = function(){}
+
 exports.Persistence = Persistence;
 

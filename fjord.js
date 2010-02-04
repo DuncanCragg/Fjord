@@ -29,16 +29,24 @@ Cache.put = function(o){
     Persistence.save(o);
 }
 
-Cache.get = function(owid){
+Cache.get = function(owid, refid){
     var o = this[owid];
     if(!o){
-        o = Persistence.get(owid);
+        o = WebObject.createFromData(Persistence.get(owid));
         if(!o){
-            o = this.makeShell(owid);
-            Networking.get(owid);
+            o = WebObject.createShell(owid);
+            Networking.get(owid, refid);
         }
         this[owid] = o;
     }
+    return o;
+}
+
+Cache.pull = function(owid, refid){
+    var o = this.get(owid, refid);
+    if(refid) o.refs[refid]=true;
+    this.notify(owid);
+    this.runRulesOnNotifiedObjects();
     return o;
 }
 
@@ -54,12 +62,6 @@ Cache.evict = function(owid){
     delete this[owid];
 }
 
-Cache.makeShell = function(owid){
-    var o = new WebObject({});
-    o.owid = owid;
-    return o;
-}
-
 exports.Cache = Cache;
 
 // -----------------------------------------------------------------------
@@ -72,6 +74,20 @@ WebObject.create = function(content, rules){
         Cache.runRulesOnNotifiedObjects();
     }
     return o.owid;
+}
+
+WebObject.createShell = function(owid){
+    var o = new WebObject({});
+    o.owid = owid;
+    return o;
+}
+
+WebObject.createFromData = function(od){
+    if(!od) return null;
+    var o = new WebObject(od.content, od.rules);
+    o.owid = od.owid;
+    o.etag = od.etag;
+    return o;
 }
 
 function WebObject(content, rules){
@@ -94,10 +110,12 @@ function WebObject(content, rules){
 WebObject.prototype.runRules = function(){
 
     if(!this.rules) return;
-    this.outlinks=this.outlinks || {};
+
     this.modified=false;
+    this.outlinks=this.outlinks || {};
     this.newlinks={};
-    for(var i in this.rules) Cache[this.rules[i]].applyTo(this);
+
+    for(var i in this.rules) Cache.get(this.rules[i]).applyTo(this);
 
     for(var owid in this.outlinks){
         if(this.newlinks[owid]===undefined){
@@ -161,7 +179,7 @@ function Applier(json1, json2, bindings, newlinks){
 Applier.prototype.apply = function(){ return this.applyJSON(this.json1, this.json2, this.bindings); }
 
 Applier.prototype.cacheGET = function(owid, refid){
-    var o=Cache.get(owid);
+    var o=Cache.get(owid, refid);
     if(!o) return null;
     if(this.newlinks) this.newlinks[owid]=true;
     j=o.content;
@@ -405,6 +423,11 @@ Applier.prototype.resolveAdd = function(lhs, rhs){
 exports.init = function(config){
     Persistence.init(config);
     Networking.init(Cache, config);
+}
+
+exports.close = function(){
+    Networking.close();
+    Persistence.close();
 }
 
 // -----------------------------------------------------------------------

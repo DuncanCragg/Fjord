@@ -5,7 +5,7 @@ run-tests:
 	( node language-tests.js; node observer-tests.js; node instrument-tests.js; node persistence-tests.js; node networking-tests.js ) | egrep Pass
 
 run-test-server:
-	./test-server.js &
+	./test-server.js 2>&1 > /dev/null &
 
 kill-test-server:
 	pkill node
