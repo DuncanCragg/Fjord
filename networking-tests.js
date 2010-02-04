@@ -31,7 +31,7 @@ o2 = WebObject.create('{ "tags": "two", "state": "0", "o1": "'+o1+'" }', rules2)
 test.isTrue("Referring to remote object creates shell", Cache[o1]);
 
 test.isEqual("OWID of shell is o1", Cache[o1].owid, o1);
-test.isEqual("JSON of shell is empty", Cache[o1].json, {});
+test.isEqual("JSON of shell is empty", Cache[o1].content, {});
 
 var expectedRefs = {}; expectedRefs[o2]=true;
 var expectedOutlinks = {}; expectedOutlinks[o1]=true;
@@ -78,8 +78,8 @@ process.addListener("exit", function () {
 
     test.isEqual("Test Server returned correct o1 rule on direct fetch", o1rule1,
                  {"owid":"owid-ca0b-0a35-9289-9f8a",
-                  "etag":0,
-                  "json":{"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"},
+                  "etag":1,
+                  "content":{"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"},
                   "outlinks":{},
                   "refs":{},
                   "_id":"owid-ca0b-0a35-9289-9f8a"
@@ -87,8 +87,8 @@ process.addListener("exit", function () {
 
     test.isEqual("Test Server returned correct o1 on direct fetch", o1obj,
                  {"owid":"owid-73c2-4046-fe02-7312",
-                  "etag":0,
-                  "json":{"tags":"one","state":"0"},
+                  "etag":3,
+                  "content":{"tags":"one","state":"0"},
                   "rules":["owid-ca0b-0a35-9289-9f8a","owid-f2aa-1220-18d4-9a03"],
                   "outlinks":{},
                   "refs":{},
@@ -96,9 +96,9 @@ process.addListener("exit", function () {
                  });
 
     test.jsonEqual("Full o1 is now in place", Cache[o1],
-                   {"owid":"owid-73c2-4046-fe02-7312",
+                   {"owid":o1,
                     "etag":0,
-                    "json":{"tags":"one","state":"0"},
+                    "content":{"tags":"one","state":"0"},
                     "outlinks":{},
                     "refs": expectedRefs
                    });
@@ -106,7 +106,7 @@ process.addListener("exit", function () {
     test.jsonEqual("Now o2 has new state", Cache[o2],
                    {"owid":o2,
                     "etag":1,
-                    "json":{ "tags": "two", "state": "0.1", "o1": o1 },
+                    "content":{ "tags": "two", "state": "0.1", "o1": o1 },
                     "rules": rules2,
                     "outlinks":expectedOutlinks,
                     "refs": {},

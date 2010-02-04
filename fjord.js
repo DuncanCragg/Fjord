@@ -44,7 +44,7 @@ Cache.get = function(owid){
 
 Cache.push = function(o){
     var oc = Cache[o.owid];
-    oc.json = o.json;
+    oc.content = o.content;
     oc.notifyRefs();
     this.runRulesOnNotifiedObjects();
 }
@@ -63,8 +63,8 @@ exports.Cache = Cache;
 
 // -----------------------------------------------------------------------
 
-WebObject.create = function(json, rules){
-    var o = new WebObject(json, rules);
+WebObject.create = function(content, rules){
+    var o = new WebObject(content, rules);
     Cache.put(o);
     if(rules){
         Cache.notify(o.owid);
@@ -73,19 +73,19 @@ WebObject.create = function(json, rules){
     return o.owid;
 }
 
-function WebObject(json, rules){
+function WebObject(content, rules){
     this.owid = owid();
     this.etag = 0;
-    if(!json) this.json = {};
+    if(!content) this.content = {};
     else
-    if(json.constructor===String){
-        this.json = JSON.parse(json);
+    if(content.constructor===String){
+        this.content = JSON.parse(content);
     }
     else
-    if(json.constructor===Object){
-        this.json = json;
+    if(content.constructor===Object){
+        this.content = content;
     }
-    else this.json = {};
+    else this.content = {};
     this.rules = rules;
     this.outlinks={};
     this.refs = {};
@@ -123,14 +123,14 @@ WebObject.prototype.runRules = function(){
 }
 
 WebObject.prototype.applyTo = function(that){
-    that.json["%owid"]=that.owid;
-    that.json["%etag"]=that.etag+"";
-    that.json["%refs"]=getTags(that.refs);
-    var applyjson=new Applier(this.json, that.json, { "%owid": that.owid }, that.newlinks).apply();
-    if(applyjson!=null && applyjson!==that.json){ that.json = applyjson; that.modified=true; }
-    delete that.json["%refs"];
-    delete that.json["%etag"];
-    delete that.json["%owid"];
+    that.content["%owid"]=that.owid;
+    that.content["%etag"]=that.etag+"";
+    that.content["%refs"]=getTags(that.refs);
+    var applyjson=new Applier(this.content, that.content, { "%owid": that.owid }, that.newlinks).apply();
+    if(applyjson!=null && applyjson!==that.content){ that.content = applyjson; that.modified=true; }
+    delete that.content["%refs"];
+    delete that.content["%etag"];
+    delete that.content["%owid"];
     return that;
 }
 
@@ -140,10 +140,10 @@ WebObject.prototype.notifyRefs = function(){
     for(var i in this.refs) Cache.notify(i);
 }
 
-WebObject.prototype.toString = function(){ return JSON.stringify(this.json); }
+WebObject.prototype.toString = function(){ return JSON.stringify(this.content); }
 
 WebObject.prototype.equals = function(that){ 
-    return deepEqual(this.json, that.json);
+    return deepEqual(this.content, that.content);
 }
 
 exports.WebObject = WebObject;
@@ -163,7 +163,7 @@ Applier.prototype.cacheGET = function(owid, refid){
     var o=Cache.get(owid);
     if(!o) return null;
     if(this.newlinks) this.newlinks[owid]=true;
-    j=o.json;
+    j=o.content;
     j["%owid"]=owid;
     return j;
 }

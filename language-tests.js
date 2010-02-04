@@ -294,7 +294,7 @@ var expected = new WebObject('{ "from": [ "a", "b" ], "copy": [ "a", "b" ] }');
 
 test.objectsEqual("Binding array to rhs makes a copy", obj, expected);
 
-test.isTrue("Using binding of array on rhs copies array", obj.json.copy!==obj.json.from);
+test.isTrue("Using binding of array on rhs copies array", obj.content.copy!==obj.content.from);
 
 // -------------------------------------------------------------------
 

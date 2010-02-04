@@ -137,7 +137,7 @@ o2  = WebObject.create('{ "tags": "two", "state": "21", "o1": "'+o1+'" }',      
 o3  = WebObject.create('{ "tags": "thr", "state": "31", "o2": "'+o2+'", "o1": "'+o1+'" }', [ r31, r32, r33 ] );
 
 test.isTrue(      "o1 got to 14",
-                   Cache[o1].json.state==14);
+                   Cache[o1].content.state==14);
 
 test.objectsEqual("o2 got to 24",
                    Cache[o2], new WebObject('{ "tags": "two", "state":"24", "o1":"'+o1+'" }'));
