@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var sys = require('sys');
+var http = require('http');
 var assert = require('assert');
 
 var test = require('./simple-test');
@@ -48,7 +49,25 @@ test.isEqual("Refs of shell are o2 and o3", Cache[o1].refs, expectedRefs);
 
 // -------------------------------------------------------------------
 
-test.summary();
+var o1candidate=null;
+
+http.createClient(8080, "localhost")
+    .request("GET", "/", { "Host": "localhost:8080" })
+    .finish(function(response){
+        var body = "";
+        response.setBodyEncoding("utf8");
+        response.addListener("body", function(chunk){ body+=chunk; });
+        response.addListener("complete", function(){ o1candidate = JSON.parse(body); });
+    });
+
+// -------------------------------------------------------------------
+
+process.addListener("exit", function () {
+    test.isEqual("Test Server returned correct o1 on direct fetch", o1candidate,
+                 {"owid":"owid-73c2-4046-fe02-7312","etag":0,"json":{"tags":"one","state":"0"},"rules":["owid-ca0b-0a35-9289-9f8a","owid-f2aa-1220-18d4-9a03"],"outlinks":{},"refs":{},"_id":"owid-73c2-4046-fe02-7312"});
+
+    test.summary();
+});
 
 // -------------------------------------------------------------------
 

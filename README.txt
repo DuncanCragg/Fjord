@@ -11,9 +11,9 @@ run tests:
 
 $ node language-tests.js
 $ node observer-tests.js
-$ node persistence-tests.js
-$ node networking-tests.js
 $ node instrument-tests.js
+$ ./persistence-tests.js
+$ ./networking-tests.js
 
 or:
 
