@@ -16,6 +16,10 @@ Cache.notify = function(owid){
     addIfNotIn(this.notifyqueue, owid);
 }
 
+Cache.notifyRefs = function(o){
+    for(var i in o.refs) this.notify(i);
+}
+
 Cache.runRulesOnNotifiedObjects = function(){
     while(this.notifyqueue.length){
         var nq = this.notifyqueue;
@@ -29,33 +33,42 @@ Cache.put = function(o){
     Persistence.save(o);
 }
 
-Cache.get = function(owid, refid){
+Cache.get = function(owid){
     var o = this[owid];
     if(!o){
         o = WebObject.createFromData(Persistence.get(owid));
         if(!o){
             o = WebObject.createShell(owid);
-            Networking.get(owid, refid);
+            Networking.get(owid);
         }
         this[owid] = o;
     }
     return o;
 }
 
-Cache.pull = function(owid, refid){
-    var o = this.get(owid, refid);
-    if(refid) o.refs[refid]=true;
-    this.notify(owid);
-    this.runRulesOnNotifiedObjects();
+Cache.pollAndRefer = function(o){
+    Networking.get(o.owid, o.etag, getTags(o.refs));
+}
+
+Cache.pull = function(owid, refs){
+    var o = this.get(owid);
+    if(refs){
+        o.ensureRefs(refs);
+        this.notify(owid);
+        this.runRulesOnNotifiedObjects();
+    }
     return o;
 }
 
 Cache.push = function(owid, etag, content){
     var oc = Cache[owid];
-    oc.etag = etag;
-    oc.content = content;
-    oc.notifyRefs();
-    this.runRulesOnNotifiedObjects();
+    if(oc.etag < etag){
+        oc.etag = etag;
+        oc.content = content;
+        this.notifyRefs(oc);
+        this.runRulesOnNotifiedObjects();
+        this.pollAndRefer(oc);
+    }
 }
 
 Cache.evict = function(owid){
@@ -92,7 +105,7 @@ WebObject.createFromData = function(od){
 
 function WebObject(content, rules){
     this.owid = owid();
-    this.etag = 0;
+    this.etag = 1;
     if(!content) this.content = {};
     else
     if(content.constructor===String){
@@ -136,9 +149,13 @@ WebObject.prototype.runRules = function(){
 
     if(this.modified){
         this.etag++;
-        this.notifyRefs();
+        Cache.notifyRefs(this);
         if(WebObject.logUpdates) sys.puts("------------------\n"+JSON.stringify(this));
     }
+}
+
+WebObject.prototype.ensureRefs = function(refs){
+    for(var i in refs) this.refs[refs[i]]=true;
 }
 
 WebObject.prototype.applyTo = function(that){
@@ -154,10 +171,6 @@ WebObject.prototype.applyTo = function(that){
 }
 
 WebObject.prototype.apply = function(rule){ return rule.applyTo(this); }
-
-WebObject.prototype.notifyRefs = function(){
-    for(var i in this.refs) Cache.notify(i);
-}
 
 WebObject.prototype.toString = function(){ return JSON.stringify(this.content); }
 
@@ -178,8 +191,8 @@ function Applier(json1, json2, bindings, newlinks){
 
 Applier.prototype.apply = function(){ return this.applyJSON(this.json1, this.json2, this.bindings); }
 
-Applier.prototype.cacheGET = function(owid, refid){
-    var o=Cache.get(owid, refid);
+Applier.prototype.cacheGET = function(owid){
+    var o=Cache.get(owid);
     if(!o) return null;
     if(this.newlinks) this.newlinks[owid]=true;
     j=o.content;
@@ -195,7 +208,7 @@ Applier.prototype.applyJSON = function(j1, j2, bindings){
     if(t1===String && j1[0]=='/') { var r = this.slashApply(j1, j2, bindings); if(r!=null) return r; }
     if(t1!==Array && t2===Array){ j1=[ j1 ]; t1=Array; }
     if(t1===Object && t2===String && j2.substring(0,5)=='owid-'){
-        a2=this.cacheGET(j2, bindings["%owid"]);
+        a2=this.cacheGET(j2);
         t2=Object;
     }
     if(t1!==t2) return null;

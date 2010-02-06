@@ -31,8 +31,13 @@ newRequest: function(req, res){
   ; sys.puts("----------------------------------------");
 
     var owid = extractOWID(req.url);
-    var refid = extractOWID(req.headers.referer);
-    var o = Cache.pull(owid, refid);
+    var refs = req.headers.referer;
+    var refslist = [];
+    if(refs){
+        var irefslist = refs.split(", ");
+        for(var i in irefslist) refslist[i] = extractOWID(irefslist[i]);
+    }
+    var o = Cache.pull(owid, refslist);
     var os = JSON.stringify(o.content);
     var headers = { "Content-Type": "application/json",
                     "Content-Location": insertOWID(owid),
@@ -47,14 +52,23 @@ newRequest: function(req, res){
 
 // ------------------------------------------------------------------
 
-get: function(owid, refid){
+get: function(owid, etag, refslist){
     if(!this.nexusClient) return;
     var url = "/a/b/c/"+owid+".json";
+    var refs;
+    if(refslist){
+        var irefslist = [];
+        for(var i in refslist) irefslist[i] = insertOWID(refslist[i]);
+        refs = irefslist.join(', ');
+    }
     var headers = {
         "Host": this.nexusHost+":"+this.nexusPort,
-        "User-Agent": "Fjord",  
-        "Referer": insertOWID(refid)
+        "User-Agent": "Fjord v0.0.1"
     };
+    if(etag) headers["If-None-Match"] = '"'+etag+'"';
+    if(refs) headers.Referer = refs;
+
+  ; sys.puts("Request: "+url+" "+sys.inspect(headers));
     var request = this.nexusClient.request("GET", url, headers);
     request.finish(this.headersIn);
 },

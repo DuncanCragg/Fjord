@@ -91,7 +91,7 @@ process.addListener("exit", function () {
 
     test.jsonEqual("Now o2 has new state and ref from o1", Cache[o2],
                    {"owid":o2,
-                    "etag":1,
+                    "etag":2,
                     "content":{ "tags": "two", "state": "0.1", "o1": o1 },
                     "rules": rules2,
                     "refs": expectedOutlinks,
@@ -102,12 +102,12 @@ process.addListener("exit", function () {
 
     test.jsonEqual("Now o3 has new state and ref from o1", Cache[o3],
                    {"owid":o3,
-                    "etag":1,
+                    "etag":2,
                     "content":{ "tags": "thr", "state": "0.1", "o1": o1 },
                     "rules": rules3,
-                    "refs": {}, //expectedOutlinks,
+                    "refs": expectedOutlinks,
                     "_id":o3,
-                    "modified": true,
+                    "modified": false,
                     "outlinks":expectedOutlinks,
                    });
 
