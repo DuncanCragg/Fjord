@@ -54,31 +54,44 @@ test.isEqual("Outlinks of o3 are just o1", Cache[o2].outlinks, expectedOutlinks)
 
 // -------------------------------------------------------------------
 
-var o1rule1=null;
-var o1obj=null;
+var client = http.createClient(8080, "localhost");
 
-http.createClient(8080, "localhost")
-    .request("GET", "/a/b/c/owid-ca0b-0a35-9289-9f8a.json", { "Host": "localhost:8080" })
-    .finish(function(response){
-        var owid = response.headers["content-location"].match(/(owid-[-0-9a-z]+)\.json$/)[1];
-        var etag = parseInt(response.headers["etag"].substring(1));
-        var body = "";
-        response.setBodyEncoding("utf8");
-        response.addListener("body", function(chunk){ body+=chunk; });
-        response.addListener("complete", function(){ o1rule1 = { "owid": owid, "etag": etag, "content": JSON.parse(body) }; });
-    });
+var headers = { "Host": "localhost:8080" };
+client.request("GET", "/a/b/c/owid-ca0b-0a35-9289-9f8a.json", headers).finish(function(response){
+
+var statusCode = response.statusCode;
+test.isEqual("Status is 200", 200, statusCode);
+
+var owid = response.headers["content-location"].match(/(owid-[-0-9a-z]+)\.json$/)[1];
+test.isEqual("OWID is correct in Content-Location", "owid-ca0b-0a35-9289-9f8a", owid);
+
+var etag = parseInt(response.headers["etag"].substring(1));
+test.isEqual("ETag is 1", 1, etag);
+
+var body = "";
+response.setBodyEncoding("utf8");
+response.addListener("body", function(chunk){ body+=chunk; });
+response.addListener("complete", function(){
+test.isEqual("Test Server returned correct o1 rule on direct fetch", JSON.parse(body),
+     {"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"}
+);
+
+headers["If-None-Match"] = '"1"';
+client.request("GET", "/a/b/c/owid-ca0b-0a35-9289-9f8a.json", headers).finish(function(response){
+
+var statusCode = response.statusCode;
+test.isEqual("Status is 304", 304, statusCode);
+
+var etag = parseInt(response.headers["etag"].substring(1));
+test.isEqual("ETag is 1", 1, etag);
+
+response.addListener("complete", function(){
+
+}); }); }); });
 
 // -------------------------------------------------------------------
 
 process.addListener("exit", function () {
-
-    // ---------------------------------------------------------------
-
-    test.isEqual("Test Server returned correct o1 rule on direct fetch", o1rule1,
-                 {"owid":"owid-ca0b-0a35-9289-9f8a",
-                  "etag":1,
-                  "content":{"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"}
-                 });
 
     // ---------------------------------------------------------------
 
