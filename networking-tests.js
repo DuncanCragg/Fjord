@@ -114,8 +114,7 @@ process.addListener("exit", function () {
                    {"owid":o1,
                     "etag":4,
                     "content":{"tags":"one","state":"0.2"},
-                    "refs": expectedRefs,
-                    "remote":true
+                    "refs": expectedRefs
                    });
 
     test.jsonEqual("Now o2 has new state and ref from o1", Cache[o2],

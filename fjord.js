@@ -10,19 +10,18 @@ var Networking = networking.Networking;
 
 // -----------------------------------------------------------------------
 
-var Cache = { "runRulesQueue": [] };
+var Cache = { "runRulesQueue": [], "remoteObject": {} };
 
 Cache.notifyRefsChanged = function(o){
-    if(!o.remote) this.notifyLocal(o.owid);
+    if(!this.remoteObject[o.owid]) this.notifyLocal(o.owid);
     else
     if(!o.isShell) this.notifyRefsRemote(o);
 }
 
 Cache.notifyStateChanged = function(o){
     for(var owid in o.refs){
-        var or = Cache[owid];
-        if(or && !or.remote) this.notifyLocal(owid);
-        // else log("**** notifyStateChanged non-local ref on "+o.owid, or);
+        if(!this.remoteObject[owid]) this.notifyLocal(owid);
+        //else log("**** notifyStateChanged non-local ref on "+o.owid, owid);
     }
 }
 
@@ -49,7 +48,7 @@ Cache.get = function(owid){
         o = WebObject.createFromData(Persistence.get(owid));
         if(!o){
             o = WebObject.createShell(owid);
-            o.remote = true;
+            this.remoteObject[owid] = true;
             Networking.get(owid);
         }
         this[owid] = o;
@@ -68,6 +67,7 @@ Cache.pollAndRefer = function(o){
 Cache.pull = function(owid, refs){
     var o = this.get(owid);
     if(refs){
+        this.setRemoteObjects(refs);
         o.ensureRefs(refs);
         this.notifyRefsChanged(o);
         this.runRulesOnNotifiedObjects();
@@ -75,16 +75,20 @@ Cache.pull = function(owid, refs){
     return o;
 }
 
+Cache.setRemoteObjects = function(refs){
+    for(var i in refs) this.remoteObject[refs[i]]=true;
+}
+
 Cache.push = function(owid, etag, content){
     var oc = Cache[owid];
     if(oc.etag < etag){
-        var isShell = oc.isShell;
+        var ocisShell = oc.isShell;
+        delete oc.isShell;
         oc.etag = etag;
         oc.content = content;
-        delete oc.isShell;
         this.notifyStateChanged(oc);
         this.runRulesOnNotifiedObjects();
-        if(isShell) this.notifyRefsRemote(oc);
+        if(ocisShell) this.notifyRefsRemote(oc);
     }
 }
 
