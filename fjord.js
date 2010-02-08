@@ -22,7 +22,7 @@ Cache.notifyStateChanged = function(o){
     for(var owid in o.refs){
         var or = Cache[owid];
         if(or && !or.remote) this.notifyLocal(owid);
-        else log("**** notifyStateChanged non-local ref on "+o.owid, or);
+        // else log("**** notifyStateChanged non-local ref on "+o.owid, or);
     }
 }
 
@@ -84,7 +84,7 @@ Cache.push = function(owid, etag, content){
         delete oc.isShell;
         this.notifyStateChanged(oc);
         this.runRulesOnNotifiedObjects();
-        if(isShell) this.pollAndRefer(oc);
+        if(isShell) this.notifyRefsRemote(oc);
     }
 }
 
@@ -141,7 +141,6 @@ function WebObject(content, rules){
 
 WebObject.prototype.runRules = function(){
 
-    if(!this.rules) log("**** no rules", this);
     if(!this.rules) return;
 
     this.modified=false;

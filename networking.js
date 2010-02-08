@@ -4,6 +4,8 @@ var http = require('http');
 
 var Cache = null;
 
+var logNetworking = false;
+
 exports.Networking = { 
 
 init: function(cache, config){
@@ -30,10 +32,10 @@ close: function(){ this.thisServer.close(); },
 
 newRequest: function(req, res){
 
-  ; sys.puts("----- Request --------------------------");
-  ; sys.puts("path="+JSON.stringify(req.url));
-  ; sys.puts("headers="+JSON.stringify(req.headers));
-  ; sys.puts("----------------------------------------");
+    if(logNetworking) sys.puts("----- Request --------------------------");
+    if(logNetworking) sys.puts("path="+JSON.stringify(req.url));
+    if(logNetworking) sys.puts("headers="+JSON.stringify(req.headers));
+    if(logNetworking) sys.puts("----------------------------------------");
 
     var owid = extractOWID(req.url);
     var inms = req.headers["if-none-match"];
@@ -53,15 +55,15 @@ newRequest: function(req, res){
         var os = JSON.stringify(o.content);
         res.sendHeader(200, headers);
         res.sendBody(os+"\n");
-  ;     sys.puts("200 OK; "+os.length);
+        if(logNetworking) sys.puts("200 OK; "+os.length);
     }
     else{
         res.sendHeader(304, headers);
-  ;     sys.puts("304 Not Modified");
+        if(logNetworking) sys.puts("304 Not Modified");
     }
     res.finish();
 
-  ; sys.puts("----------------------------------------");
+    if(logNetworking) sys.puts("----------------------------------------");
 },
 
 // ------------------------------------------------------------------
@@ -82,15 +84,15 @@ get: function(owid, etag, refslist){
     if(etag) headers["If-None-Match"] = '"'+etag+'"';
     if(refs) headers.Referer = refs;
 
-  ; sys.puts("Outgoing Request: "+url+" "+sys.inspect(headers));
+    if(logNetworking) sys.puts("Outgoing Request: "+url+" "+sys.inspect(headers));
     var request = this.nexusClient.request("GET", url, headers);
     request.finish(this.headersIn);
 },
 
 headersIn: function(response){
 
-  ; sys.puts("----- Response -------------------------");
-  ; sys.puts(response.statusCode + ": " + JSON.stringify(response.headers));
+    if(logNetworking) sys.puts("----- Response -------------------------");
+    if(logNetworking) sys.puts(response.statusCode + ": " + JSON.stringify(response.headers));
 
     var owid = extractOWID(response.headers["content-location"]);
     var etag = parseInt(response.headers.etag.substring(1));
@@ -99,15 +101,15 @@ headersIn: function(response){
     if(response.statusCode==200){
         response.addListener("body", function(chunk){ body+=chunk; });
         response.addListener("complete", function(){
-            var content = JSON.parse(body);  
+            var content = JSON.parse(body);
             Cache.push(owid, etag, content);
-  ;         sys.puts("----------------------------------------");
+            if(logNetworking) sys.puts("----------------------------------------");
         });
     }
     else
     if(response.statusCode==304){
         Cache.push(owid, etag, null);
-  ;     sys.puts("----------------------------------------");
+        if(logNetworking) sys.puts("----------------------------------------");
     }
 }
 
