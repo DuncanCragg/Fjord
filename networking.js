@@ -30,7 +30,7 @@ close: function(){ this.thisServer.close(); },
 
 newRequest: function(req, res){
 
-  ; sys.puts("----------------------------------------");
+  ; sys.puts("----- Request --------------------------");
   ; sys.puts("path="+JSON.stringify(req.url));
   ; sys.puts("headers="+JSON.stringify(req.headers));
   ; sys.puts("----------------------------------------");
@@ -82,14 +82,14 @@ get: function(owid, etag, refslist){
     if(etag) headers["If-None-Match"] = '"'+etag+'"';
     if(refs) headers.Referer = refs;
 
-  ; sys.puts("Request: "+url+" "+sys.inspect(headers));
+  ; sys.puts("Outgoing Request: "+url+" "+sys.inspect(headers));
     var request = this.nexusClient.request("GET", url, headers);
     request.finish(this.headersIn);
 },
 
 headersIn: function(response){
 
-  ; sys.puts("----------------------------------------");
+  ; sys.puts("----- Response -------------------------");
   ; sys.puts(response.statusCode + ": " + JSON.stringify(response.headers));
 
     var owid = extractOWID(response.headers["content-location"]);

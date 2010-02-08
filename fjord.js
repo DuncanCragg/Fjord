@@ -10,20 +10,30 @@ var Networking = networking.Networking;
 
 // -----------------------------------------------------------------------
 
-var Cache = { "notifyqueue": [] };
+var Cache = { "runRulesQueue": [] };
 
-Cache.notify = function(owid){
-    addIfNotIn(this.notifyqueue, owid);
+Cache.notifyRefsChanged = function(o){
+    if(!o.remote) this.notifyLocal(o.owid);
+    else
+    if(!o.isShell) this.notifyRefsRemote(o);
 }
 
-Cache.notifyRefs = function(o){
-    for(var i in o.refs) this.notify(i);
+Cache.notifyStateChanged = function(o){
+    for(var owid in o.refs){
+        var or = Cache[owid];
+        if(or && !or.remote) this.notifyLocal(owid);
+        else log("**** notifyStateChanged non-local ref on "+o.owid, or);
+    }
+}
+
+Cache.notifyLocal = function(owid){
+    addIfNotIn(this.runRulesQueue, owid);
 }
 
 Cache.runRulesOnNotifiedObjects = function(){
-    while(this.notifyqueue.length){
-        var nq = this.notifyqueue;
-        this.notifyqueue=[];
+    while(this.runRulesQueue.length){
+        var nq = this.runRulesQueue;
+        this.runRulesQueue=[];
         for(var i in nq) this[nq[i]].runRules();
     }
 }
@@ -39,11 +49,16 @@ Cache.get = function(owid){
         o = WebObject.createFromData(Persistence.get(owid));
         if(!o){
             o = WebObject.createShell(owid);
+            o.remote = true;
             Networking.get(owid);
         }
         this[owid] = o;
     }
     return o;
+}
+
+Cache.notifyRefsRemote = function(o){
+    this.pollAndRefer(o);
 }
 
 Cache.pollAndRefer = function(o){
@@ -54,7 +69,7 @@ Cache.pull = function(owid, refs){
     var o = this.get(owid);
     if(refs){
         o.ensureRefs(refs);
-        this.notify(owid);
+        this.notifyRefsChanged(o);
         this.runRulesOnNotifiedObjects();
     }
     return o;
@@ -63,11 +78,13 @@ Cache.pull = function(owid, refs){
 Cache.push = function(owid, etag, content){
     var oc = Cache[owid];
     if(oc.etag < etag){
+        var isShell = oc.isShell;
         oc.etag = etag;
         oc.content = content;
-        this.notifyRefs(oc);
+        delete oc.isShell;
+        this.notifyStateChanged(oc);
         this.runRulesOnNotifiedObjects();
-        this.pollAndRefer(oc);
+        if(isShell) this.pollAndRefer(oc);
     }
 }
 
@@ -83,15 +100,17 @@ WebObject.create = function(content, rules){
     var o = new WebObject(content, rules);
     Cache.put(o);
     if(rules){
-        Cache.notify(o.owid);
+        Cache.notifyLocal(o.owid);
         Cache.runRulesOnNotifiedObjects();
     }
     return o.owid;
 }
 
 WebObject.createShell = function(owid){
-    var o = new WebObject({});
+    var o = new WebObject();
     o.owid = owid;
+    o.etag = 0;
+    o.isShell = true;
     return o;
 }
 
@@ -122,6 +141,7 @@ function WebObject(content, rules){
 
 WebObject.prototype.runRules = function(){
 
+    if(!this.rules) log("**** no rules", this);
     if(!this.rules) return;
 
     this.modified=false;
@@ -134,14 +154,14 @@ WebObject.prototype.runRules = function(){
         if(this.newlinks[owid]===undefined){
             var o=Cache[owid];
             delete o.refs[this.owid];
-            Cache.notify(owid);
+            Cache.notifyRefsChanged(o);
         }
     }
     for(var owid in this.newlinks){
         if(this.outlinks[owid]===undefined){
             var o=Cache[owid];
             o.refs[this.owid]=true;
-            Cache.notify(owid);
+            Cache.notifyRefsChanged(o);
         }
     }
     this.outlinks=this.newlinks;
@@ -149,7 +169,7 @@ WebObject.prototype.runRules = function(){
 
     if(this.modified){
         this.etag++;
-        Cache.notifyRefs(this);
+        Cache.notifyStateChanged(this);
         if(WebObject.logUpdates) sys.puts("------------------\n"+JSON.stringify(this));
     }
 }
@@ -389,8 +409,8 @@ Applier.prototype.handleBindings = function(and, lhs, bindings){
 
 Applier.prototype.resolve = function(lhs, rhs, bindings){
     rhs=this.resolveBindings(rhs, bindings);
-    if(rhs.match(/^has\(/))  return this.resolveHas(lhs, rhs);
-    if(rhs.match(/^add!\(/)) return this.resolveAdd(lhs, rhs);
+    if(/^has\(/.test(rhs))  return this.resolveHas(lhs, rhs);
+    if(/^add!\(/.test(rhs)) return this.resolveAdd(lhs, rhs);
     rhs = evaluate(rhs);
     rhs.modified=true;
     return rhs;

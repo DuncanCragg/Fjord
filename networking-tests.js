@@ -87,6 +87,21 @@ test.isEqual("ETag is 1", 1, etag);
 
 response.addListener("complete", function(){
 
+// -------------------------------------------------------------------
+
+rules4 = [
+  WebObject.create('{ "tags": "fou", "o1": { "tags": "one", "state": "/number;$n/" }, "state": "/number/fix(1,number($n)+0.1)/" }'),
+];
+
+o4 = WebObject.create('{ "tags": "fou", "state": "0", "o1": "'+o1+'" }', rules4);
+
+expectedRefs[o4]=true;
+
+test.isEqual("Refs of shell are o2, o3 and o4", Cache[o1].refs, expectedRefs);
+test.isEqual("Outlinks of o4 are just o1", Cache[o2].outlinks, expectedOutlinks);
+
+// -------------------------------------------------------------------
+
 }); }); }); });
 
 // -------------------------------------------------------------------
@@ -97,15 +112,16 @@ process.addListener("exit", function () {
 
     test.jsonEqual("Full o1 is now in place", Cache[o1],
                    {"owid":o1,
-                    "etag":3,
-                    "content":{"tags":"one","state":"0"},
-                    "refs": expectedRefs
+                    "etag":4,
+                    "content":{"tags":"one","state":"0.2"},
+                    "refs": expectedRefs,
+                    "remote":true
                    });
 
     test.jsonEqual("Now o2 has new state and ref from o1", Cache[o2],
                    {"owid":o2,
-                    "etag":2,
-                    "content":{ "tags": "two", "state": "0.1", "o1": o1 },
+                    "etag":3,
+                    "content":{ "tags": "two", "state": "0.3", "o1": o1 },
                     "rules": rules2,
                     "refs": expectedOutlinks,
                     "_id":o2,
@@ -115,11 +131,22 @@ process.addListener("exit", function () {
 
     test.jsonEqual("Now o3 has new state and ref from o1", Cache[o3],
                    {"owid":o3,
-                    "etag":2,
-                    "content":{ "tags": "thr", "state": "0.1", "o1": o1 },
+                    "etag":3,
+                    "content":{ "tags": "thr", "state": "0.3", "o1": o1 },
                     "rules": rules3,
                     "refs": expectedOutlinks,
                     "_id":o3,
+                    "modified": false,
+                    "outlinks":expectedOutlinks,
+                   });
+
+    test.jsonEqual("Now o4 has new state and ref from o1", Cache[o4],
+                   {"owid":o4,
+                    "etag":3,
+                    "content":{ "tags": "fou", "state": "0.3", "o1": o1 },
+                    "rules": rules4,
+                    "refs": expectedOutlinks,
+                    "_id":o4,
                     "modified": false,
                     "outlinks":expectedOutlinks,
                    });
