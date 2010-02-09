@@ -1,4 +1,5 @@
 # git-ls-files --others --exclude-from=.gitignore
 .*.swp
 fjord.db
+fjord-test.db
 doc/local/

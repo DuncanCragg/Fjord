@@ -37,17 +37,8 @@ Persistence.load = function() {
             buffer += chunk;
             while((offset = buffer.indexOf("\n")) !== -1) {
                 var o = JSON.parse(buffer.substr(0, offset));
-                if(!(o.owid in self.owids) && !o.deleted) {
-                    self.length++;
-                }
-                if(o.deleted) {
-                    if(o.owid in self.owids) {
-                        self.objects.splice(self.owids[o.owid], 1);
-                        delete self.owids[o.owid];
-                    }
-                } else {
-                    self.owids[o.owid] = (self.objects.push(o)-1);
-                }
+                if(!(o.owid in self.owids)) self.length++;
+                self.owids[o.owid] = (self.objects.push(o)-1);
                 buffer = buffer.substr(offset+1);
             }
             read();
@@ -62,29 +53,21 @@ Persistence.load = function() {
 
 Persistence.get = function(owid){
     if(!this.dbFileName) return null;
-    var o = this.objects[this.owids[owid]];
-    return (o && o.deleted)? undefined: o;
+    return this.objects[this.owids[owid]];
 }
 
 Persistence.sync = function(o, cb) {
-
     if(!this.dbFileName) return;
-
     var owid = o.owid;
-    if(this.owids[owid] === undefined && !o.deleted) {
-        this.length++;
-    }
+    if(this.owids[owid] === undefined) this.length++;
     this.owids[owid] = (this.objects.push(o)-1);
-
     this.memoryIds.push(owid);
     this.memoryQueueLength++;
-
     if(this.memoryQueueLength === this.flushLimit) {
         this.flush().addCallback(function() { if(cb) cb(o); });
     } else if(cb) {
         this.flushCallbacks.push(function() { cb(o); });
     }
-
     if(!this.flushTimer && this.flushInterval && this.memoryQueueLength !== this.flushLimit){
         var self = this;
         this.flushTimer = setTimeout(function() { self.flush(); }, this.flushInterval);
@@ -134,22 +117,6 @@ Persistence.flush = function() {
     this.memoryQueueLength = 0;
 
     return promise;
-};
-
-Persistence.remove = function(owid, cb) {
-    var self = this;
-    delete this.objects[this.owids[owid]];
-    this.length--;
-    this.sync({ owid: owid, deleted: true}, function() {
-        delete self.objects[self.owids[owid]];
-        delete(self.owids[owid]);
-        if(cb) cb();
-    });
-};
-
-Persistence.empty = function() {
-    this.owids = {};
-    this.objects = [];
 };
 
 Persistence.close = function() {
