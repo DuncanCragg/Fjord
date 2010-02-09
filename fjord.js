@@ -129,6 +129,8 @@ WebObject.createFromData = function(od){
 function WebObject(content, rules){
     this.owid = owid();
     this.etag = 1;
+    this.rules = rules;
+    this.refs = {};
     if(!content) this.content = {};
     else
     if(content.constructor===String){
@@ -139,8 +141,6 @@ function WebObject(content, rules){
         this.content = content;
     }
     else this.content = {};
-    this.rules = rules;
-    this.refs = {};
 }
 
 WebObject.prototype.runRules = function(){

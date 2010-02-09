@@ -113,16 +113,16 @@ process.addListener("exit", function () {
     test.jsonEqual("Full o1 is now in place", Cache[o1],
                    {"owid":o1,
                     "etag":4,
+                    "refs": expectedRefs,
                     "content":{"tags":"one","state":"0.2"},
-                    "refs": expectedRefs
                    });
 
     test.jsonEqual("Now o2 has new state and ref from o1", Cache[o2],
                    {"owid":o2,
                     "etag":3,
-                    "content":{ "tags": "two", "state": "0.3", "o1": o1 },
                     "rules": rules2,
                     "refs": expectedOutlinks,
+                    "content":{ "tags": "two", "state": "0.3", "o1": o1 },
                     "modified": false,
                     "outlinks":expectedOutlinks,
                    });
@@ -130,9 +130,9 @@ process.addListener("exit", function () {
     test.jsonEqual("Now o3 has new state and ref from o1", Cache[o3],
                    {"owid":o3,
                     "etag":3,
-                    "content":{ "tags": "thr", "state": "0.3", "o1": o1 },
                     "rules": rules3,
                     "refs": expectedOutlinks,
+                    "content":{ "tags": "thr", "state": "0.3", "o1": o1 },
                     "modified": false,
                     "outlinks":expectedOutlinks,
                    });
@@ -140,9 +140,9 @@ process.addListener("exit", function () {
     test.jsonEqual("Now o4 has new state and ref from o1", Cache[o4],
                    {"owid":o4,
                     "etag":3,
-                    "content":{ "tags": "fou", "state": "0.3", "o1": o1 },
                     "rules": rules4,
                     "refs": expectedOutlinks,
+                    "content":{ "tags": "fou", "state": "0.3", "o1": o1 },
                     "modified": false,
                     "outlinks":expectedOutlinks,
                    });
