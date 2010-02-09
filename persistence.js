@@ -7,90 +7,68 @@ var File = require('file').File;
 
 var Persistence = { };
 
-Persistence.init = function(config){
+Persistence.init = function(config, cb){
     this.dbFileName = (config && config.dbFileName) || "./fjord.db";
-    this.start(this.dbFileName, { flushInterval: 10 });
-    this.load().addCallback(Persistence.dbload);
-    sys.puts("DB file is "+this.dbFileName);
-}
-
-Persistence.dbload = function(){
-}
-
-Persistence.save = function(o){
-    if(this.dbFileName) this.set(o);
-}
-
-Persistence.get = function(owid){
-    return this.dbFileName? this.get(owid): null;
-}
-
-Persistence.close = function(){ this.close(); }
-
-Persistence.start = function(file, options){
-
-    //process.inherits(this, process.EventEmitter);
-    //process.EventEmitter.call(this);
-
-    options = process.mixin({
-        flushInterval: 10,
-        flushLimit: 1000,
-    }, options);
-
-    this.file = new File(file, 'a+', {encoding: 'utf8'});
+    this.file = new File(this.dbFileName, 'a+', {encoding: 'utf8'});
     this.objects = [];
     this.owids = {};
     this.memoryIds = [];
-    this.flushInterval = options.flushInterval;
+    this.flushInterval = (config && config.flushInterval) || 10;
     this.flushCallbacks = [];
-    this.flushLimit = options.flushLimit;
+    this.flushLimit = (config && config.flushLimit) || 1000;
     this.memoryQueueLength = 0;
     this.flushQueueLength = 0;
     this.length = 0;
-};
 
+    this.load().addCallback(cb);
+
+    sys.puts("DB file is "+this.dbFileName);
+}
 
 Persistence.load = function() {
     var self = this;
     var promise = new process.Promise();
     var buffer = '';
     var offset = 0;
-    var read = function() {
-            self.file.read(16*1024)
-            .addCallback(function(chunk) {
-                if(!chunk)  return promise.emitSuccess();
-                buffer += chunk;
-                while((offset = buffer.indexOf("\n")) !== -1) {
-                    var o = JSON.parse(buffer.substr(0, offset));
-                    if(!(o.owid in self.owids) && !o.deleted) {
-                        self.length++;
-                    }
-                    if(o.deleted) {
-                        if(o.owid in self.owids) {
-                            self.objects.splice(self.owids[o.owid], 1);
-                            delete self.owids[o.owid];
-                        }
-                    } else {
-                        self.owids[o.owid] = (self.objects.push(o)-1);
-                    }
-                    buffer = buffer.substr(offset+1);
+    var read = function(){
+        self.file.read(16*1024)
+        .addCallback(function(chunk) {
+            if(!chunk)  return promise.emitSuccess();
+            buffer += chunk;
+            while((offset = buffer.indexOf("\n")) !== -1) {
+                var o = JSON.parse(buffer.substr(0, offset));
+                if(!(o.owid in self.owids) && !o.deleted) {
+                    self.length++;
                 }
-                read();
-            })
-            .addErrback(function() {
-                promise.emitError(new Error('could not read from '+self.file.filename));
-            });
-        }
+                if(o.deleted) {
+                    if(o.owid in self.owids) {
+                        self.objects.splice(self.owids[o.owid], 1);
+                        delete self.owids[o.owid];
+                    }
+                } else {
+                    self.owids[o.owid] = (self.objects.push(o)-1);
+                }
+                buffer = buffer.substr(offset+1);
+            }
+            read();
+        })
+        .addErrback(function() {
+            promise.emitError(new Error('could not read from '+self.file.filename));
+        });
+    }
     read();
     return promise;
 };
 
-Persistence.get = function(owid) {
+Persistence.get = function(owid){
+    if(!this.dbFileName) return null;
     var o = this.objects[this.owids[owid]];
     return (o && o.deleted)? undefined: o;
-};
+}
 
-Persistence.set = function(o, cb) {
+Persistence.save = function(o, cb) {
+
+    if(!this.dbFileName) return;
 
     var owid = o.owid;
     if(this.owids[owid] === undefined && !o.deleted) {
@@ -147,7 +125,6 @@ Persistence.flush = function() {
             if(self.flushQueueLength === 0 && self.memoryQueueLength === 0) {
                 clearTimeout(self.flushTimer);
                 self.flushTimer = null;
-              //self.emit('flush');
             }
         });
 
@@ -163,7 +140,7 @@ Persistence.remove = function(owid, cb) {
     var self = this;
     delete this.objects[this.owids[owid]];
     this.length--;
-    this.set({ owid: owid, deleted: true}, function() {
+    this.save({ owid: owid, deleted: true}, function() {
         delete self.objects[self.owids[owid]];
         delete(self.owids[owid]);
         if(cb) cb();

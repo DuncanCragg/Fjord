@@ -114,6 +114,7 @@ process.addListener("exit", function () {
                    {"owid":o1,
                     "etag":4,
                     "refs": expectedRefs,
+                    "outlinks": {},
                     "content":{"tags":"one","state":"0.2"},
                    });
 
@@ -122,8 +123,8 @@ process.addListener("exit", function () {
                     "etag":3,
                     "rules": rules2,
                     "refs": expectedOutlinks,
-                    "content":{ "tags": "two", "state": "0.3", "o1": o1 },
                     "outlinks":expectedOutlinks,
+                    "content":{ "tags": "two", "state": "0.3", "o1": o1 },
                    });
 
     test.jsonEqual("Now o3 has new state and ref from o1", Cache[o3],
@@ -131,8 +132,8 @@ process.addListener("exit", function () {
                     "etag":3,
                     "rules": rules3,
                     "refs": expectedOutlinks,
-                    "content":{ "tags": "thr", "state": "0.3", "o1": o1 },
                     "outlinks":expectedOutlinks,
+                    "content":{ "tags": "thr", "state": "0.3", "o1": o1 },
                    });
 
     test.jsonEqual("Now o4 has new state and ref from o1", Cache[o4],
@@ -140,8 +141,8 @@ process.addListener("exit", function () {
                     "etag":3,
                     "rules": rules4,
                     "refs": expectedOutlinks,
-                    "content":{ "tags": "fou", "state": "0.3", "o1": o1 },
                     "outlinks":expectedOutlinks,
+                    "content":{ "tags": "fou", "state": "0.3", "o1": o1 },
                    });
 
     // ---------------------------------------------------------------

@@ -131,6 +131,7 @@ function WebObject(content, rules){
     this.etag = 1;
     this.rules = rules;
     this.refs = {};
+    this.outlinks = {};
     if(!content) this.content = {};
     else
     if(content.constructor===String){
@@ -147,7 +148,6 @@ WebObject.prototype.runRules = function(){
 
     if(!this.rules) return;
 
-    this.outlinks=this.outlinks || {};
     this.newlinks={};
 
     for(var i in this.rules) Cache.get(this.rules[i]).applyTo(this);
@@ -457,7 +457,7 @@ Applier.prototype.resolveAdd = function(lhs, rhs){
 // -----------------------------------------------------------------------
 
 exports.init = function(config){
-    Persistence.init(config);
+    Persistence.init(config, function(){ sys.puts("DB loaded"); });
     Networking.init(Cache, config);
 }
 
