@@ -66,7 +66,7 @@ Persistence.get = function(owid){
     return (o && o.deleted)? undefined: o;
 }
 
-Persistence.save = function(o, cb) {
+Persistence.sync = function(o, cb) {
 
     if(!this.dbFileName) return;
 
@@ -140,7 +140,7 @@ Persistence.remove = function(owid, cb) {
     var self = this;
     delete this.objects[this.owids[owid]];
     this.length--;
-    this.save({ owid: owid, deleted: true}, function() {
+    this.sync({ owid: owid, deleted: true}, function() {
         delete self.objects[self.owids[owid]];
         delete(self.owids[owid]);
         if(cb) cb();

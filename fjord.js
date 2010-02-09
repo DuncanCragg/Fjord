@@ -39,7 +39,7 @@ Cache.runRulesOnNotifiedObjects = function(){
 
 Cache.put = function(o){
     this[o.owid]=o;
-    Persistence.save(o);
+    Persistence.sync(o);
 }
 
 Cache.get = function(owid){
@@ -172,6 +172,7 @@ WebObject.prototype.runRules = function(){
     if(this.modified){
         delete this.modified;
         this.etag++;
+        Persistence.sync(this);
         Cache.notifyStateChanged(this);
         if(WebObject.logUpdates) sys.puts("------------------\n"+JSON.stringify(this));
     }
