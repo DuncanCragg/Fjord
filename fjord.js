@@ -147,7 +147,6 @@ WebObject.prototype.runRules = function(){
 
     if(!this.rules) return;
 
-    this.modified=false;
     this.outlinks=this.outlinks || {};
     this.newlinks={};
 
@@ -171,6 +170,7 @@ WebObject.prototype.runRules = function(){
     delete this.newlinks;
 
     if(this.modified){
+        delete this.modified;
         this.etag++;
         Cache.notifyStateChanged(this);
         if(WebObject.logUpdates) sys.puts("------------------\n"+JSON.stringify(this));

@@ -123,7 +123,6 @@ process.addListener("exit", function () {
                     "rules": rules2,
                     "refs": expectedOutlinks,
                     "content":{ "tags": "two", "state": "0.3", "o1": o1 },
-                    "modified": false,
                     "outlinks":expectedOutlinks,
                    });
 
@@ -133,7 +132,6 @@ process.addListener("exit", function () {
                     "rules": rules3,
                     "refs": expectedOutlinks,
                     "content":{ "tags": "thr", "state": "0.3", "o1": o1 },
-                    "modified": false,
                     "outlinks":expectedOutlinks,
                    });
 
@@ -143,7 +141,6 @@ process.addListener("exit", function () {
                     "rules": rules4,
                     "refs": expectedOutlinks,
                     "content":{ "tags": "fou", "state": "0.3", "o1": o1 },
-                    "modified": false,
                     "outlinks":expectedOutlinks,
                    });
 

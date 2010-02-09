@@ -9,8 +9,8 @@ var Persistence = { };
 
 Persistence.init = function(config){
     this.dbFileName = (config && config.dbFileName) || "./fjord.db";
-    this.db = new PersistenceO(this.dbFileName, { flushInterval: 10 });
-    this.db.load().addCallback(Persistence.dbload);
+    this.start(this.dbFileName, { flushInterval: 10 });
+    this.load().addCallback(Persistence.dbload);
     sys.puts("DB file is "+this.dbFileName);
 }
 
@@ -18,18 +18,19 @@ Persistence.dbload = function(){
 }
 
 Persistence.save = function(o){
-    if(this.db) this.db.set(o);
+    if(this.dbFileName) this.set(o);
 }
 
 Persistence.get = function(owid){
-    return this.db? this.db.get(owid): null;
+    return this.dbFileName? this.get(owid): null;
 }
 
-Persistence.close = function(){ this.db.close(); }
+Persistence.close = function(){ this.close(); }
 
-var PersistenceO = function(file, options) {
+Persistence.start = function(file, options){
 
-    process.EventEmitter.call(this);
+    //process.inherits(this, process.EventEmitter);
+    //process.EventEmitter.call(this);
 
     options = process.mixin({
         flushInterval: 10,
@@ -48,19 +49,16 @@ var PersistenceO = function(file, options) {
     this.length = 0;
 };
 
-process.inherits(PersistenceO, process.EventEmitter);
 
-PersistenceO.prototype.load = function() {
+Persistence.load = function() {
     var self = this;
     var promise = new process.Promise();
     var buffer = '';
     var offset = 0;
     var read = function() {
-            self.file.read(16*1024).addCallback(function(chunk) {
-                if(!chunk) {
-                    return promise.emitSuccess();
-                }
-
+            self.file.read(16*1024)
+            .addCallback(function(chunk) {
+                if(!chunk)  return promise.emitSuccess();
                 buffer += chunk;
                 while((offset = buffer.indexOf("\n")) !== -1) {
                     var o = JSON.parse(buffer.substr(0, offset));
@@ -87,22 +85,18 @@ PersistenceO.prototype.load = function() {
     return promise;
 };
 
-PersistenceO.prototype.get = function(owid) {
+Persistence.get = function(owid) {
     var o = this.objects[this.owids[owid]];
     return (o && o.deleted)? undefined: o;
 };
 
-PersistenceO.prototype.set = function(o, cb) {
+Persistence.set = function(o, cb) {
 
     var owid = o.owid;
     if(this.owids[owid] === undefined && !o.deleted) {
         this.length++;
     }
     this.owids[owid] = (this.objects.push(o)-1);
-    if(!this.file) {
-        process.nextTick(function() { cb(o); });
-        return;
-    }
 
     this.memoryIds.push(owid);
     this.memoryQueueLength++;
@@ -119,19 +113,17 @@ PersistenceO.prototype.set = function(o, cb) {
     }
 };
 
-PersistenceO.prototype.flush = function() {
+Persistence.flush = function() {
     var promise = new process.Promise();
-    if(this.memoryQueueLength === 0 || !this.file) {
+    if(this.memoryQueueLength === 0) {
         promise.emitSuccess();
         return promise;
     }
-
-    var
-        self = this,
-        chunk = '',
-        length = this.memoryIds.length,
-        writePromises = 0,
-        done = {};
+    var self = this;
+    var chunk = '';
+    var length = this.memoryIds.length;
+    var writePromises = 0;
+    var done = {};
 
     this.flushQueueLength += length;
 
@@ -152,11 +144,10 @@ PersistenceO.prototype.flush = function() {
                 self.flushCallbacks = [];
                 promise.emitSuccess();
             }
-
             if(self.flushQueueLength === 0 && self.memoryQueueLength === 0) {
                 clearTimeout(self.flushTimer);
                 self.flushTimer = null;
-                self.emit('flush');
+              //self.emit('flush');
             }
         });
 
@@ -168,7 +159,7 @@ PersistenceO.prototype.flush = function() {
     return promise;
 };
 
-PersistenceO.prototype.remove = function(owid, cb) {
+Persistence.remove = function(owid, cb) {
     var self = this;
     delete this.objects[this.owids[owid]];
     this.length--;
@@ -179,12 +170,12 @@ PersistenceO.prototype.remove = function(owid, cb) {
     });
 };
 
-PersistenceO.prototype.empty = function() {
+Persistence.empty = function() {
     this.owids = {};
     this.objects = [];
 };
 
-PersistenceO.prototype.close = function() {
+Persistence.close = function() {
     clearTimeout(this.flushTimer);
     return this.file.close();
 };
