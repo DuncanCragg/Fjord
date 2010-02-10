@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 
 var sys   = require('sys');
 var assert = require('assert');
@@ -12,6 +13,8 @@ var Cache     = fjord.Cache;
 // -----------------------------------------------------------------------
 
 WebObject.logUpdates=false;
+
+fjord.init({ "thisPort": 8081 });
 
 sys.puts('------------------ Instrument Tests ---------------------');
 
@@ -125,7 +128,52 @@ test.objectsEqual("When reference dropped, refs drop referrer", Cache[instrument
 
 // -------------------------------------------------------------------
 
+perinst="owid-f33d-d433-90e7-4608";
+
+var perbid1, perbid2, perask1, perask2;
+
+perbid1=WebObject.create('{ "tags": [ "equity", "bid" ], "on": "'+perinst+'", "price": "" }', [ bidrule ]);
+
+setTimeout(function(){
+
+perask1=WebObject.create('{ "tags": [ "equity", "ask" ], "on": "'+perinst+'", "price": "" }', [ askrule ]);
+
+setTimeout(function(){
+
+perbid2=WebObject.create('{ "tags": [ "equity", "bid" ], "on": "'+perinst+'", "price": "" }', [ bidrule ]);
+
+setTimeout(function(){
+
+perask2=WebObject.create('{ "tags": [ "equity", "ask" ], "on": "'+perinst+'", "price": "" }', [ askrule ]);
+
+setTimeout(function(){
+
+Cache.pollObject(perinst);
+
+}, 100);
+}, 100);
+}, 100);
+}, 100);
+
+// ---------------
+
+process.addListener("exit", function () {
+
+expected = new WebObject('{ "tags": [ "equity", "instrument" ],'+
+                         '  "long-name": "Acme Co., Inc",'+
+                         '  "buyers":  [ "'+perbid1+'", "'+perbid2+'" ],'+
+                         '  "sellers": [ "'+perask1+'", "'+perask2+'" ],'+
+                         '  "bid-ask-spread": { "high-bid": "12.1", "low-ask":  "16.2" } }')
+
+test.objectsEqual("Persistent, Networked Instrument worked", Cache[perinst], expected);
+
+// -------------------------------------------------------------------
+
 test.summary();
+
+});
+
+setTimeout(fjord.close, 500);
 
 // -------------------------------------------------------------------
 

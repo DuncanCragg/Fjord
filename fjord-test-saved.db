@@ -1,3 +1,8 @@
 {"owid":"owid-ca0b-0a35-9289-9f8a","etag":1,"refs":{},"outlinks":{},"content":{"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"}}
-{"owid":"owid-f2aa-1220-18d4-9a03","etag":2,"refs":{},"outlinks":{},"content":{"tags":"one","%refs":{"tags":"two","state":"done"},"state":"/number/done/"}}
-{"owid":"owid-73c2-4046-fe02-7312","etag":3,"rules":["owid-ca0b-0a35-9289-9f8a","owid-f2aa-1220-18d4-9a03"],"refs":{},"outlinks":{},"content":{"tags":"one","state":"0"}}
+{"owid":"owid-f2aa-1220-18d4-9a03","etag":1,"refs":{},"outlinks":{},"content":{"tags":"one","%refs":{"tags":"two","state":"done"},"state":"/number/done/"}}
+{"owid":"owid-73c2-4046-fe02-7312","etag":1,"rules":["owid-ca0b-0a35-9289-9f8a","owid-f2aa-1220-18d4-9a03"],"refs":{},"outlinks":{},"content":{"tags":"one","state":"0"}}
+{"owid":"owid-a6df-406a-699c-3552","etag":1,"refs":{},"outlinks":{},"content":{"tags":["equity","instrument"],"%owid":"/$this/","%refs":{"tags":["equity","bid"],"%owid":"/$bid/","on":"/$this/"},"buyers":"/array/has($bid)/"}}
+{"owid":"owid-3a37-cdd3-1b8f-a15a","etag":1,"refs":{},"outlinks":{},"content":{"tags":["equity","instrument"],"%owid":"/$this/","%refs":{"tags":["equity","ask"],"%owid":"/$ask/","on":"/$this/"},"sellers":"/array/has($ask)/"}}
+{"owid":"owid-bca2-69dc-b675-0284","etag":1,"refs":{},"outlinks":{},"content":{"tags":["equity","instrument"],"buyers":{"price":"/$bids;number/"},"bid-ask-spread":{"high-bid":"/number/max($bids)/"}}}
+{"owid":"owid-604e-d103-1026-54a8","etag":1,"refs":{},"outlinks":{},"content":{"tags":["equity","instrument"],"sellers":{"price":"/$asks;number/"},"bid-ask-spread":{"low-ask":"/number/min($asks)/"}}}
+{"owid":"owid-f33d-d433-90e7-4608","etag":1,"rules":["owid-a6df-406a-699c-3552","owid-3a37-cdd3-1b8f-a15a","owid-bca2-69dc-b675-0284","owid-604e-d103-1026-54a8"],"refs":{},"outlinks":{},"content":{"tags":["equity","instrument"],"long-name":"Acme Co., Inc","buyers":[],"sellers":[],"bid-ask-spread":{"high-bid":"10.0","low-ask":"20.0"}}}

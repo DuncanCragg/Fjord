@@ -112,7 +112,7 @@ process.addListener("exit", function () {
 
     test.jsonEqual("Full o1 is now in place", Cache[o1],
                    {"owid":o1,
-                    "etag":4,
+                    "etag":2,
                     "refs": expectedRefs,
                     "outlinks": {},
                     "content":{"tags":"one","state":"0.2"},
@@ -152,7 +152,7 @@ process.addListener("exit", function () {
 
 // -------------------------------------------------------------------
 
-setTimeout(function(){ fjord.close(); }, 500);
+setTimeout(fjord.close, 500);
 
 // -------------------------------------------------------------------
 

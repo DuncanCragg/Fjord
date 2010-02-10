@@ -60,6 +60,11 @@ Cache.notifyRefsRemote = function(o){
     this.pollAndRefer(o);
 }
 
+Cache.pollObject = function(owid){
+    var o = this[owid];
+    Networking.get(owid, o.etag);
+}
+
 Cache.pollAndRefer = function(o){
     Networking.get(o.owid, o.etag, getTags(o.refs));
 }
