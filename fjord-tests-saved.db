@@ -1,0 +1,5 @@
+{"owid":"owid-9737-4463-817d-b3a9","etag":1,"refs":{},"outlinks":{},"content":{"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"}}
+{"owid":"owid-99c4-d78c-3067-2305","etag":1,"refs":{},"outlinks":{},"content":{"tags":"one","%refs":{"tags":"two","state":"done"},"state":"/number/done/"}}
+{"owid":"owid-2688-1726-63ea-3871","etag":52,"rules":["owid-9737-4463-817d-b3a9","owid-99c4-d78c-3067-2305"],"refs":{},"outlinks":{},"content":{"tags":"one","state":"0"}}
+{"owid":"owid-d8c3-abbc-aa60-6311","etag":1,"refs":{},"outlinks":{},"content":{"tags":"two","o1":{"tags":"one","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"}}
+{"owid":"owid-227f-cdfa-2eff-2aca","etag":1,"refs":{},"outlinks":{},"content":{"tags":"two","state":"/gt(10)/done/"}}
