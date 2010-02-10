@@ -7,20 +7,23 @@ var File = require('file').File;
 
 var Persistence = { };
 
-Persistence.init = function(config, cb){
+Persistence.init = function(config){
     this.dbFileName = (config && config.dbFileName) || "./fjord.db";
     this.file = new File(this.dbFileName, 'a+', {encoding: 'utf8'});
     this.objects = [];
     this.owids = {};
     this.memoryIds = [];
-    this.flushInterval = (config && config.flushInterval) || 10;
+    this.flushInterval = (config && config.flushInterval) || 1;
     this.flushCallbacks = [];
     this.flushLimit = (config && config.flushLimit) || 1000;
     this.memoryQueueLength = 0;
     this.flushQueueLength = 0;
     this.length = 0;
 
-    this.load().addCallback(cb);
+    var p = this.load();
+    if(config && config.dbLoaded){
+        p.addCallback(config.dbLoaded);
+    }
 
     sys.puts("DB file is "+this.dbFileName);
 }

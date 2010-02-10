@@ -458,7 +458,7 @@ Applier.prototype.resolveAdd = function(lhs, rhs){
 // -----------------------------------------------------------------------
 
 exports.init = function(config){
-    Persistence.init(config, function(){ sys.puts("DB loaded"); });
+    Persistence.init(config);
     Networking.init(Cache, config);
 }
 
