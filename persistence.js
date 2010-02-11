@@ -11,17 +11,20 @@ exports.Persistence = {
 
 init: function(cache, config){
     Cache = cache;
+
     this.dbFileName = (config && config.dbFileName) || "./fjord.db";
     this.file = new File(this.dbFileName, 'a+', {encoding: 'utf8'});
+
     this.objects = [];
-    this.index = {};
-    this.memoryIds = [];
-    this.flushInterval = (config && config.flushInterval) || 1;
-    this.flushCallbacks = [];
-    this.flushLimit = (config && config.flushLimit) || 1000;
-    this.memoryQueueLength = 0;
-    this.flushQueueLength = 0;
     this.length = 0;
+    this.index = {};
+
+    this.flushInterval = (config && config.flushInterval) || 1;
+    this.flushLimit =    (config && config.flushLimit)    || 5;
+    this.flushOWIDs = [];
+    this.flushLength = 0;
+    this.flushQueueLength = 0;
+    this.flushCallbacks = [];
 
     var p = this.load();
     if(config && config.dbLoaded){
@@ -67,14 +70,14 @@ sync: function(o, cb) {
     var owid = o.owid;
     if(this.index[owid] === undefined) this.length++;
     this.index[owid] = (this.objects.push(o)-1);
-    this.memoryIds.push(owid);
-    this.memoryQueueLength++;
-    if(this.memoryQueueLength === this.flushLimit) {
+    this.flushOWIDs.push(owid);
+    this.flushLength++;
+    if(this.flushLength === this.flushLimit) {
         this.flush().addCallback(function() { if(cb) cb(o); });
     } else if(cb) {
         this.flushCallbacks.push(function() { cb(o); });
     }
-    if(!this.flushTimer && this.flushInterval && this.memoryQueueLength !== this.flushLimit){
+    if(!this.flushTimer && this.flushInterval && this.flushLength !== this.flushLimit){
         var self = this;
         this.flushTimer = setTimeout(function() { self.flush(); }, this.flushInterval);
     }
@@ -82,26 +85,23 @@ sync: function(o, cb) {
 
 flush: function() {
     var promise = new process.Promise();
-    if(this.memoryQueueLength === 0) {
+    if(this.flushLength === 0) {
         promise.emitSuccess();
         return promise;
     }
     var self = this;
     var chunk = '';
-    var length = this.memoryIds.length;
+    var length = this.flushOWIDs.length;
     var writePromises = 0;
     var done = {};
-
     this.flushQueueLength += length;
 
-    this.memoryIds.forEach(function(owid, i) {
+    this.flushOWIDs.forEach(function(owid, i) {
         if(!(owid in done)) {
             chunk += JSON.stringify(self.objects[self.index[owid]])+"\n";
         }
         done[owid] = true;
-
         if(chunk.length < 16*1024 && i < (length-1))  return;
-
         writePromises++;
         self.file.write(chunk).addCallback(function() {
             writePromises--;
@@ -111,16 +111,15 @@ flush: function() {
                 self.flushCallbacks = [];
                 promise.emitSuccess();
             }
-            if(self.flushQueueLength === 0 && self.memoryQueueLength === 0) {
+            if(self.flushQueueLength === 0 && self.flushLength === 0) {
                 clearTimeout(self.flushTimer);
                 self.flushTimer = null;
             }
         });
-
         chunk = '';
     });
-    this.memoryIds = [];
-    this.memoryQueueLength = 0;
+    this.flushOWIDs = [];
+    this.flushLength = 0;
 
     return promise;
 },
