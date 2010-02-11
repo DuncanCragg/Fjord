@@ -5,9 +5,12 @@
 var sys = require('sys');
 var File = require('file').File;
 
-var Persistence = { };
+var Cache = null;
 
-Persistence.init = function(config){
+exports.Persistence = {
+
+init: function(cache, config){
+    Cache = cache;
     this.dbFileName = (config && config.dbFileName) || "./fjord.db";
     this.file = new File(this.dbFileName, 'a+', {encoding: 'utf8'});
     this.objects = [];
@@ -26,9 +29,9 @@ Persistence.init = function(config){
     }
 
     sys.puts("DB file is "+this.dbFileName);
-}
+},
 
-Persistence.load = function() {
+load: function() {
     var self = this;
     var promise = new process.Promise();
     var buffer = '';
@@ -39,7 +42,7 @@ Persistence.load = function() {
             if(!chunk)  return promise.emitSuccess();
             buffer += chunk;
             while((offset = buffer.indexOf("\n")) !== -1) {
-                var o = JSON.parse(buffer.substr(0, offset));
+                var o = Cache.createWebObject(buffer.substr(0, offset));
                 if(!(o.owid in self.owids)) self.length++;
                 self.owids[o.owid] = (self.objects.push(o)-1);
                 buffer = buffer.substr(offset+1);
@@ -52,14 +55,14 @@ Persistence.load = function() {
     }
     read();
     return promise;
-};
+},
 
-Persistence.get = function(owid){
+get: function(owid){
     if(!this.dbFileName) return null;
     return this.objects[this.owids[owid]];
-}
+},
 
-Persistence.sync = function(o, cb) {
+sync: function(o, cb) {
     if(!this.dbFileName) return;
     var owid = o.owid;
     if(this.owids[owid] === undefined) this.length++;
@@ -75,9 +78,9 @@ Persistence.sync = function(o, cb) {
         var self = this;
         this.flushTimer = setTimeout(function() { self.flush(); }, this.flushInterval);
     }
-};
+},
 
-Persistence.flush = function() {
+flush: function() {
     var promise = new process.Promise();
     if(this.memoryQueueLength === 0) {
         promise.emitSuccess();
@@ -120,12 +123,12 @@ Persistence.flush = function() {
     this.memoryQueueLength = 0;
 
     return promise;
-};
+},
 
-Persistence.close = function() {
+close: function() {
     clearTimeout(this.flushTimer);
     return this.file.close();
-};
+}
 
-exports.Persistence = Persistence;
+};
 

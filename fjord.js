@@ -45,7 +45,7 @@ Cache.put = function(o){
 Cache.get = function(owid){
     var o = this[owid];
     if(!o){
-        o = WebObject.createFromData(Persistence.get(owid));
+        o = Persistence.get(owid);
         if(!o){
             o = WebObject.createShell(owid);
             this.remoteObject[owid] = true;
@@ -101,6 +101,15 @@ Cache.evict = function(owid){
     delete this[owid];
 }
 
+Cache.createWebObject = function(data){
+    if(!data) return null;
+    var od = JSON.parse(data);
+    var o = new WebObject(od.content, od.rules);
+    o.owid = od.owid;
+    o.etag = od.etag;
+    return o;
+}
+
 exports.Cache = Cache;
 
 // -----------------------------------------------------------------------
@@ -120,14 +129,6 @@ WebObject.createShell = function(owid){
     o.owid = owid;
     o.etag = 0;
     o.isShell = true;
-    return o;
-}
-
-WebObject.createFromData = function(od){
-    if(!od) return null;
-    var o = new WebObject(od.content, od.rules);
-    o.owid = od.owid;
-    o.etag = od.etag;
     return o;
 }
 
@@ -463,7 +464,7 @@ Applier.prototype.resolveAdd = function(lhs, rhs){
 // -----------------------------------------------------------------------
 
 exports.init = function(config){
-    Persistence.init(config);
+    Persistence.init(Cache, config);
     Networking.init(Cache, config);
 }
 
