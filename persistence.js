@@ -14,7 +14,7 @@ init: function(cache, config){
     this.dbFileName = (config && config.dbFileName) || "./fjord.db";
     this.file = new File(this.dbFileName, 'a+', {encoding: 'utf8'});
     this.objects = [];
-    this.owids = {};
+    this.index = {};
     this.memoryIds = [];
     this.flushInterval = (config && config.flushInterval) || 1;
     this.flushCallbacks = [];
@@ -43,8 +43,8 @@ load: function() {
             buffer += chunk;
             while((offset = buffer.indexOf("\n")) !== -1) {
                 var o = Cache.createWebObject(buffer.substr(0, offset));
-                if(!(o.owid in self.owids)) self.length++;
-                self.owids[o.owid] = (self.objects.push(o)-1);
+                if(!(o.owid in self.index)) self.length++;
+                self.index[o.owid] = (self.objects.push(o)-1);
                 buffer = buffer.substr(offset+1);
             }
             read();
@@ -59,14 +59,14 @@ load: function() {
 
 get: function(owid){
     if(!this.dbFileName) return null;
-    return this.objects[this.owids[owid]];
+    return this.objects[this.index[owid]];
 },
 
 sync: function(o, cb) {
     if(!this.dbFileName) return;
     var owid = o.owid;
-    if(this.owids[owid] === undefined) this.length++;
-    this.owids[owid] = (this.objects.push(o)-1);
+    if(this.index[owid] === undefined) this.length++;
+    this.index[owid] = (this.objects.push(o)-1);
     this.memoryIds.push(owid);
     this.memoryQueueLength++;
     if(this.memoryQueueLength === this.flushLimit) {
@@ -96,7 +96,7 @@ flush: function() {
 
     this.memoryIds.forEach(function(owid, i) {
         if(!(owid in done)) {
-            chunk += JSON.stringify(self.objects[self.owids[owid]])+"\n";
+            chunk += JSON.stringify(self.objects[self.index[owid]])+"\n";
         }
         done[owid] = true;
 
