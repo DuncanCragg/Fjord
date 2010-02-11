@@ -32,7 +32,7 @@ close: function(){ this.thisServer.close(); },
 
 newRequest: function(req, res){
 
-    if(logNetworking) sys.puts("----- Request --------------------------");
+    if(logNetworking) sys.puts("----> Request --------------------------");
     if(logNetworking) sys.puts("path="+JSON.stringify(req.url));
     if(logNetworking) sys.puts("headers="+JSON.stringify(req.headers));
     if(logNetworking) sys.puts("----------------------------------------");
@@ -55,7 +55,7 @@ newRequest: function(req, res){
         var os = JSON.stringify(o.content);
         res.sendHeader(200, headers);
         res.sendBody(os+"\n");
-        if(logNetworking) sys.puts("200 OK; "+os.length);
+        if(logNetworking) sys.puts("200 OK; "+os.length+JSON.stringify(headers)+'\n'+os);
     }
     else{
         res.sendHeader(304, headers);
@@ -63,7 +63,7 @@ newRequest: function(req, res){
     }
     res.finish();
 
-    if(logNetworking) sys.puts("----------------------------------------");
+    if(logNetworking) sys.puts("<---------------------------------------");
 },
 
 // ------------------------------------------------------------------
@@ -84,14 +84,16 @@ get: function(owid, etag, refslist){
     if(etag) headers["If-None-Match"] = '"'+etag+'"';
     if(refs) headers.Referer = refs;
 
-    if(logNetworking) sys.puts("Outgoing Request: "+url+" "+sys.inspect(headers));
+    if(logNetworking) sys.puts("<---- Request --------------------------");
+    if(logNetworking) sys.puts(url+" "+sys.inspect(headers));
+    if(logNetworking) sys.puts("----------------------------------------");
     var request = this.nexusClient.request("GET", url, headers);
     request.finish(this.headersIn);
 },
 
 headersIn: function(response){
 
-    if(logNetworking) sys.puts("----- Response -------------------------");
+    if(logNetworking) sys.puts("----> Response -------------------------");
     if(logNetworking) sys.puts(response.statusCode + ": " + JSON.stringify(response.headers));
 
     var owid = extractOWID(response.headers["content-location"]);
@@ -102,6 +104,7 @@ headersIn: function(response){
         response.addListener("body", function(chunk){ body+=chunk; });
         response.addListener("complete", function(){
             var content = JSON.parse(body);
+            if(logNetworking) sys.puts(body);
             Cache.push(owid, etag, content);
             if(logNetworking) sys.puts("----------------------------------------");
         });
