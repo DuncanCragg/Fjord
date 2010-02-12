@@ -62,12 +62,12 @@ doGET: function(request, response){
         }
     }
     var o = Cache.pull(owid, refslist);
+
     var headers = { "Content-Type": "application/json",
                     "Content-Location": this.insertOWID(owid),
                     "Etag": '"'+o.etag+'"',
                     "Cache-Notify": this.getCacheNotifyURL(),
     };
-
     if(o.etag!=inmi){
         var os = JSON.stringify(o.content);
         response.sendHeader(200, headers);

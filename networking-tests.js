@@ -22,7 +22,7 @@ WebObject.logUpdates=false;
 
 rules2 = [
   WebObject.create('{ "tags": "two", "o1":    { "tags": "one", "state": "/number;$n/" }, "state": "/number/fix(1,number($n)+0.1)/" }'),
-  WebObject.create('{ "tags": "two", "state": "/gt(5)/done/" }')
+  WebObject.create('{ "tags": "two", "state": "/gt(10)/done/" }')
 ];
 
 o1 = "owid-73c2-4046-fe02-7312";
@@ -115,7 +115,7 @@ process.addListener("exit", function () {
 
     test.jsonEqual("Full o1 is now in place", Cache[o1],
                    {"owid":o1,
-                    "etag":27,
+                    "etag":52,
                     "refs": expectedRefs,
                     "outlinks": {},
                     "content":{"tags":"one","state":"done"},
@@ -123,7 +123,7 @@ process.addListener("exit", function () {
 
     test.jsonEqual("Now o2 has new state and ref from o1", Cache[o2],
                    {"owid":o2,
-                    "etag":27,
+                    "etag":52,
                     "rules": rules2,
                     "refs": expectedOutlinks,
                     "outlinks":expectedOutlinks,
@@ -132,20 +132,20 @@ process.addListener("exit", function () {
 
     test.jsonEqual("Now o3 has new state and ref from o1", Cache[o3],
                    {"owid":o3,
-                    "etag":27,
+                    "etag":52,
                     "rules": rules3,
                     "refs": expectedOutlinks,
                     "outlinks":expectedOutlinks,
-                    "content":{ "tags": "thr", "state": "5.1", "o1": o1 },
+                    "content":{ "tags": "thr", "state": "10.1", "o1": o1 },
                    });
 
     test.jsonEqual("Now o4 has new state and ref from o1", Cache[o4],
                    {"owid":o4,
-                    "etag":27,
+                    "etag":52,
                     "rules": rules4,
                     "refs": expectedOutlinks,
                     "outlinks":expectedOutlinks,
-                    "content":{ "tags": "fou", "state": "5.1", "o1": o1 },
+                    "content":{ "tags": "fou", "state": "10.1", "o1": o1 },
                    });
 
     test.isEqual("CacheNotify URL for o1 is o1's server", Cache.cacheNotifyURL[o1], "http://localhost:8080/fjord/cache-notify");
@@ -157,7 +157,7 @@ process.addListener("exit", function () {
 
 // -------------------------------------------------------------------
 
-setTimeout(fjord.close, 500);
+setTimeout(fjord.close, 800);
 
 // -------------------------------------------------------------------
 
