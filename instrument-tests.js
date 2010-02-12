@@ -136,11 +136,11 @@ perbid1=WebObject.create('{ "tags": [ "equity", "bid" ], "on": "'+perinst+'", "p
 
 setTimeout(function(){
 
-perask1=WebObject.create('{ "tags": [ "equity", "ask" ], "on": "'+perinst+'", "price": "" }', [ askrule ]);
+perbid2=WebObject.create('{ "tags": [ "equity", "bid" ], "on": "'+perinst+'", "price": "" }', [ bidrule ]);
 
 setTimeout(function(){
 
-perbid2=WebObject.create('{ "tags": [ "equity", "bid" ], "on": "'+perinst+'", "price": "" }', [ bidrule ]);
+perask1=WebObject.create('{ "tags": [ "equity", "ask" ], "on": "'+perinst+'", "price": "" }', [ askrule ]);
 
 setTimeout(function(){
 

@@ -22,7 +22,7 @@ WebObject.logUpdates=false;
 
 rules2 = [
   WebObject.create('{ "tags": "two", "o1":    { "tags": "one", "state": "/number;$n/" }, "state": "/number/fix(1,number($n)+0.1)/" }'),
-  WebObject.create('{ "tags": "two", "state": "/gt(10)/done/" }')
+  WebObject.create('{ "tags": "two", "state": "/gt(5)/done/" }')
 ];
 
 o1 = "owid-73c2-4046-fe02-7312";
@@ -68,6 +68,9 @@ test.isEqual("OWID is correct in Content-Location", "owid-ca0b-0a35-9289-9f8a", 
 var etag = parseInt(response.headers["etag"].substring(1));
 test.isEqual("ETag is 1", 1, etag);
 
+var cacheNotify = response.headers["cache-notify"];
+test.isEqual("Cache-Notify is http://localhost:8080/fjord/cache-notify", "http://localhost:8080/fjord/cache-notify", cacheNotify);
+
 var body = "";
 response.setBodyEncoding("utf8");
 response.addListener("body", function(chunk){ body+=chunk; });
@@ -112,38 +115,40 @@ process.addListener("exit", function () {
 
     test.jsonEqual("Full o1 is now in place", Cache[o1],
                    {"owid":o1,
-                    "etag":2,
+                    "etag":27,
                     "refs": expectedRefs,
                     "outlinks": {},
-                    "content":{"tags":"one","state":"0.2"},
+                    "content":{"tags":"one","state":"done"},
                    });
 
     test.jsonEqual("Now o2 has new state and ref from o1", Cache[o2],
                    {"owid":o2,
-                    "etag":3,
+                    "etag":27,
                     "rules": rules2,
                     "refs": expectedOutlinks,
                     "outlinks":expectedOutlinks,
-                    "content":{ "tags": "two", "state": "0.3", "o1": o1 },
+                    "content":{ "tags": "two", "state": "done", "o1": o1 },
                    });
 
     test.jsonEqual("Now o3 has new state and ref from o1", Cache[o3],
                    {"owid":o3,
-                    "etag":3,
+                    "etag":27,
                     "rules": rules3,
                     "refs": expectedOutlinks,
                     "outlinks":expectedOutlinks,
-                    "content":{ "tags": "thr", "state": "0.3", "o1": o1 },
+                    "content":{ "tags": "thr", "state": "5.1", "o1": o1 },
                    });
 
     test.jsonEqual("Now o4 has new state and ref from o1", Cache[o4],
                    {"owid":o4,
-                    "etag":3,
+                    "etag":27,
                     "rules": rules4,
                     "refs": expectedOutlinks,
                     "outlinks":expectedOutlinks,
-                    "content":{ "tags": "fou", "state": "0.3", "o1": o1 },
+                    "content":{ "tags": "fou", "state": "5.1", "o1": o1 },
                    });
+
+    test.isEqual("CacheNotify URL for o1 is o1's server", Cache.cacheNotifyURL[o1], "http://localhost:8080/fjord/cache-notify");
 
     // ---------------------------------------------------------------
 

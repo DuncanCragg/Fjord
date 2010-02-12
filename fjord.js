@@ -10,7 +10,7 @@ var Networking = networking.Networking;
 
 // -----------------------------------------------------------------------
 
-var Cache = { "runRulesQueue": [], "remoteObject": {} };
+var Cache = { "runRulesQueue": [], "remoteObject": {}, "cacheNotifyURL": {} };
 
 Cache.notifyRefsChanged = function(o){
     if(!this.remoteObject[o.owid]) this.notifyLocal(o.owid);
@@ -19,14 +19,23 @@ Cache.notifyRefsChanged = function(o){
 }
 
 Cache.notifyStateChanged = function(o){
+    var canos = {};
     for(var owid in o.refs){
         if(!this.remoteObject[owid]) this.notifyLocal(owid);
-        //else log("**** notifyStateChanged non-local ref on "+o.owid, owid);
+        else{
+            canos[this.cacheNotifyURL[owid]]=true;
+        }
     }
+    var canol = getTags(canos);
+    if(canol.length) this.notifyRemote(o, canol);
 }
 
 Cache.notifyLocal = function(owid){
     addIfNotIn(this.runRulesQueue, owid);
+}
+
+Cache.notifyRemote = function(o, canol){
+    Networking.push(o, canol);
 }
 
 Cache.runRulesOnNotifiedObjects = function(){
@@ -86,6 +95,7 @@ Cache.setRemoteObjects = function(refs){
 
 Cache.push = function(owid, etag, content){
     var oc = Cache[owid];
+    if(!oc){ log("push without cached object: "+owid+":\n",content); return; }
     if(oc.etag < etag){
         var ocisShell = oc.isShell;
         delete oc.isShell;
