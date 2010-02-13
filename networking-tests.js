@@ -118,6 +118,7 @@ process.addListener("exit", function () {
                     "etag":52,
                     "refs": expectedRefs,
                     "outlinks": {},
+                    "URL":"http://localhost:8080/fjord/owid-73c2-4046-fe02-7312.json",
                     "content":{"tags":"one","state":"done"},
                    });
 
@@ -148,7 +149,7 @@ process.addListener("exit", function () {
                     "content":{ "tags": "fou", "state": "10.1", "o1": o1 },
                    });
 
-    test.isEqual("CacheNotify URL for o1 is o1's server", Cache.cacheNotifyURL[o1], "http://localhost:8080/fjord/cache-notify");
+    test.isEqual("CacheNotify URL for o1 is o1's server", Cache.cacheNotify[o1], "http://localhost:8080/fjord/cache-notify");
 
     // ---------------------------------------------------------------
 

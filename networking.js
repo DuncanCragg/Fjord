@@ -58,7 +58,7 @@ doGET: function(request, response){
         for(var i in irefslist){
             r=this.extractOWID(irefslist[i]);
             refslist[i] = r;
-            Cache.cacheNotifyURL[r] = cano;
+            Cache.cacheNotify[r] = cano;
         }
     }
     var o = Cache.pull(owid, refslist);
@@ -84,7 +84,8 @@ doGET: function(request, response){
 },
 
 doPOST: function(request, response){
-    var owid = this.extractOWID(request.headers["content-location"]);
+    var colo = request.headers["content-location"];
+    var owid = this.extractOWID(colo);
     var etag = request.headers.etag? parseInt(request.headers.etag.substring(1)): 0;
     var body = "";
     request.setBodyEncoding("utf8");
@@ -94,7 +95,7 @@ doPOST: function(request, response){
         response.finish();
         var content = JSON.parse(body);
         if(logNetworking) sys.puts(body);
-        Cache.push(owid, etag, content);
+        Cache.push(owid, etag, colo, content);
         if(logNetworking) sys.puts("----------------------------------------");
     });
 },
@@ -130,7 +131,8 @@ getHeadersIn: function(response){
     if(logNetworking) sys.puts("----> Response -------------------------");
     if(logNetworking) sys.puts(response.statusCode + ": " + JSON.stringify(response.headers));
 
-    var owid = Networking.extractOWID(response.headers["content-location"]);
+    var colo = response.headers["content-location"];
+    var owid = Networking.extractOWID(colo);
     var etag = response.headers.etag? parseInt(response.headers.etag.substring(1)): 0;
     var body = "";
     response.setBodyEncoding("utf8");
@@ -139,13 +141,13 @@ getHeadersIn: function(response){
         response.addListener("complete", function(){
             var content = JSON.parse(body);
             if(logNetworking) sys.puts(body);
-            Cache.push(owid, etag, content);
+            Cache.push(owid, etag, colo, content);
             if(logNetworking) sys.puts("----------------------------------------");
         });
     }
     else
     if(response.statusCode==304){
-        Cache.push(owid, etag, null);
+        Cache.push(owid, etag, colo);
         if(logNetworking) sys.puts("----------------------------------------");
     }
 },

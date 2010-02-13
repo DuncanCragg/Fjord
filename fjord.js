@@ -10,21 +10,19 @@ var Networking = networking.Networking;
 
 // -----------------------------------------------------------------------
 
-var Cache = { "runRulesQueue": [], "remoteObject": {}, "cacheNotifyURL": {} };
+var Cache = { "runRulesQueue": [], "cacheNotify": {} };
 
 Cache.notifyRefsChanged = function(o){
-    if(!this.remoteObject[o.owid]) this.notifyLocal(o.owid);
+    if(!o.URL) this.notifyLocal(o.owid);
     else
-    if(!o.isShell) this.notifyRefsRemote(o);
+    if(o.URL != "shell") this.notifyRefsRemote(o);
 }
 
 Cache.notifyStateChanged = function(o){
     var canos = {};
     for(var owid in o.refs){
-        if(!this.remoteObject[owid]) this.notifyLocal(owid);
-        else{
-            canos[this.cacheNotifyURL[owid]]=true;
-        }
+        if(!this.cacheNotify[owid]) this.notifyLocal(owid);
+        else canos[this.cacheNotify[owid]]=true;
     }
     var canol = getTags(canos);
     if(canol.length) this.notifyRemote(o, canol);
@@ -57,7 +55,6 @@ Cache.get = function(owid){
         o = Persistence.get(owid);
         if(!o){
             o = WebObject.createShell(owid);
-            this.remoteObject[owid] = true;
             Networking.get(owid);
         }
         this[owid] = o;
@@ -81,7 +78,6 @@ Cache.pollAndRefer = function(o){
 Cache.pull = function(owid, refs){
     var o = this.get(owid);
     if(refs){
-        this.setRemoteObjects(refs);
         o.ensureRefs(refs);
         this.notifyRefsChanged(o);
         this.runRulesOnNotifiedObjects();
@@ -89,17 +85,13 @@ Cache.pull = function(owid, refs){
     return o;
 }
 
-Cache.setRemoteObjects = function(refs){
-    for(var i in refs) this.remoteObject[refs[i]]=true;
-}
-
-Cache.push = function(owid, etag, content){
+Cache.push = function(owid, etag, url, content){
     var oc = Cache[owid];
     if(!oc){ log("push without cached object: "+owid+":\n",content); return; }
     if(oc.etag < etag){
-        var ocisShell = oc.isShell;
-        delete oc.isShell;
+        var ocisShell = (oc.URL == "shell");
         oc.etag = etag;
+        oc.URL = url;
         oc.content = content;
         this.notifyStateChanged(oc);
         this.runRulesOnNotifiedObjects();
@@ -138,7 +130,6 @@ WebObject.createShell = function(owid){
     var o = new WebObject();
     o.owid = owid;
     o.etag = 0;
-    o.isShell = true;
     return o;
 }
 
@@ -148,7 +139,10 @@ function WebObject(content, rules){
     this.rules = rules;
     this.refs = {};
     this.outlinks = {};
-    if(!content) this.content = {};
+    if(!content){
+        this.URL="shell";
+        this.content = {};
+    }
     else
     if(content.constructor===String){
         this.content = JSON.parse(content);
