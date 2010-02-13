@@ -138,17 +138,18 @@ function WebObject(content, rules){
     this.etag = 1;
     this.rules = rules;
     this.refs = {};
-    this.outlinks = {};
     if(!content){
         this.URL="shell";
         this.content = {};
     }
     else
     if(content.constructor===String){
+        this.outlinks = {};
         this.content = JSON.parse(content);
     }
     else
     if(content.constructor===Object){
+        this.outlinks = {};
         this.content = content;
     }
     else this.content = {};

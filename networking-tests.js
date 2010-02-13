@@ -117,8 +117,7 @@ process.addListener("exit", function () {
                    {"owid":o1,
                     "etag":52,
                     "refs": expectedRefs,
-                    "outlinks": {},
-                    "URL":"http://localhost:8080/fjord/owid-73c2-4046-fe02-7312.json",
+                    "URL":"http://localhost:8080/fjord/"+o1+".json",
                     "content":{"tags":"one","state":"done"},
                    });
 
