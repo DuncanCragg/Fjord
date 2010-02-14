@@ -174,8 +174,12 @@ getHeadersIn: function(response){
 push: function(o, canol){
     for(var i in canol){
         var url = canol[i];
+        var hpp = this.extractHostPortAndPath(url);
+        var host=hpp.host;
+        var port=hpp.port;
+        var path=hpp.path;
         var headers = {
-            "Host": this.nexusHost+":"+this.nexusPort,
+            "Host": host+":"+port,
             "User-Agent": "Fjord v0.0.1",
             "Cache-Notify": this.getCacheNotifyURL(),
             "Content-Location": this.insertOWID(o.owid),
@@ -185,10 +189,6 @@ push: function(o, canol){
         if(logNetworking) sys.puts(url+" "+sys.inspect(headers)+o);
         if(logNetworking) sys.puts("----------------------------------------");
 
-        var hpp = this.extractHostPortAndPath(url);
-        var host=hpp.host;
-        var port=hpp.port;
-        var path=hpp.path;
         var client=http.createClient(port, host);
         var request = client.request("POST", path, headers);
         request.sendBody(o.toString());
