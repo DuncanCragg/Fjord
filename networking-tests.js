@@ -115,40 +115,41 @@ process.addListener("exit", function () {
 
     test.jsonEqual("Full o1 is now in place", Cache[o1],
                    {"owid":o1,
-                    "etag":52,
                     "refs": expectedRefs,
-                    "URL":"http://localhost:8080/fjord/"+o1+".json",
+                    "url":"http://localhost:8080/fjord/"+o1+".json",
+                    "cachenotify":"http://localhost:8080/fjord/cache-notify",
+                    "etag":52,
                     "content":{"tags":"one","state":"done"},
                    });
 
     test.jsonEqual("Now o2 has new state and ref from o1", Cache[o2],
                    {"owid":o2,
-                    "etag":52,
                     "rules": rules2,
                     "refs": expectedOutlinks,
                     "outlinks":expectedOutlinks,
+                    "etag":52,
                     "content":{ "tags": "two", "state": "done", "o1": o1 },
                    });
 
     test.jsonEqual("Now o3 has new state and ref from o1", Cache[o3],
                    {"owid":o3,
-                    "etag":52,
                     "rules": rules3,
                     "refs": expectedOutlinks,
                     "outlinks":expectedOutlinks,
+                    "etag":52,
                     "content":{ "tags": "thr", "state": "10.1", "o1": o1 },
                    });
 
     test.jsonEqual("Now o4 has new state and ref from o1", Cache[o4],
                    {"owid":o4,
-                    "etag":52,
                     "rules": rules4,
                     "refs": expectedOutlinks,
                     "outlinks":expectedOutlinks,
+                    "etag":52,
                     "content":{ "tags": "fou", "state": "10.1", "o1": o1 },
                    });
 
-    test.isEqual("CacheNotify URL for o1 is o1's server", Cache.cacheNotify[o1], "http://localhost:8080/fjord/cache-notify");
+    test.isEqual("CacheNotify URL for o1 is o1's server", Cache[o1].cachenotify, "http://localhost:8080/fjord/cache-notify");
 
     // ---------------------------------------------------------------
 

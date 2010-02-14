@@ -10,29 +10,30 @@ var Networking = networking.Networking;
 
 // -----------------------------------------------------------------------
 
-var Cache = { "runRulesQueue": [], "cacheNotify": {} };
+var Cache = { "runRulesQueue": [] };
 
 Cache.notifyRefsChanged = function(o){
-    if(!o.URL) this.notifyLocal(o.owid);
+    if(!o.url) this.notifyLocal(o.owid);
     else
-    if(o.URL != "shell") this.notifyRefsRemote(o);
+    if(o.etag) this.notifyRefsRemote(o);
 }
 
 Cache.notifyStateChanged = function(o){
     var canos = {};
     for(var owid in o.refs){
-        if(!this.cacheNotify[owid]) this.notifyLocal(owid);
-        else canos[this.cacheNotify[owid]]=true;
+        var or = this[owid];
+        if(!or.cachenotify) this.notifyLocal(owid);
+        else canos[or.cachenotify]=true;
     }
     var canol = getTags(canos);
-    if(canol.length) this.notifyRemote(o, canol);
+    if(canol.length) this.notifyStateRemote(o, canol);
 }
 
 Cache.notifyLocal = function(owid){
     addIfNotIn(this.runRulesQueue, owid);
 }
 
-Cache.notifyRemote = function(o, canol){
+Cache.notifyStateRemote = function(o, canol){
     Networking.push(o, canol);
 }
 
@@ -51,13 +52,14 @@ Cache.put = function(o){
 
 Cache.get = function(owid){
     var o = this[owid];
+    if(o && o.url && !o.etag) Networking.get(o.url);
     if(!o){
         o = Persistence.get(owid);
-        if(!o){
+        if(o) this[owid] = o;
+        else{
             o = WebObject.createShell(owid);
             Networking.get(owid);
         }
-        this[owid] = o;
     }
     return o;
 }
@@ -68,11 +70,18 @@ Cache.notifyRefsRemote = function(o){
 
 Cache.pollObject = function(owid){
     var o = this[owid];
-    Networking.get(owid, o.etag);
+    Networking.get(o.url, o.etag);
 }
 
 Cache.pollAndRefer = function(o){
-    Networking.get(o.owid, o.etag, getTags(o.refs));
+    Networking.get(o.url, o.etag, getTags(o.refs));
+}
+
+Cache.refShell = function(owid, url, cano){
+    var o=this[owid];
+    if(!o) o=WebObject.createShell(owid);
+    o.url=url;
+    o.cachenotify=cano;
 }
 
 Cache.pull = function(owid, refs){
@@ -85,17 +94,19 @@ Cache.pull = function(owid, refs){
     return o;
 }
 
-Cache.push = function(owid, etag, url, content){
-    var oc = Cache[owid];
-    if(!oc){ log("push without cached object: "+owid+":\n",content); return; }
-    if(oc.etag < etag){
-        var ocisShell = (oc.URL == "shell");
-        oc.etag = etag;
-        oc.URL = url;
-        oc.content = content;
-        this.notifyStateChanged(oc);
+Cache.push = function(owid, etag, url, cano, content){
+    var o = Cache[owid];
+    if(!o){ log("push without cached object: "+owid+":\n",content); return; }
+    if(o.etag < etag){
+        var isShell = !o.etag;
+        o.url = url;
+        o.cachenotify=cano;
+        o.etag = etag;
+        o.content = content;
+        Persistence.sync(o);
+        this.notifyStateChanged(o);
         this.runRulesOnNotifiedObjects();
-        if(ocisShell) this.notifyRefsRemote(oc);
+        if(isShell) this.notifyRefsRemote(o);
     }
 }
 
@@ -129,27 +140,31 @@ WebObject.create = function(content, rules){
 WebObject.createShell = function(owid){
     var o = new WebObject();
     o.owid = owid;
-    o.etag = 0;
+    Cache.put(o);
     return o;
 }
 
 function WebObject(content, rules){
     this.owid = owid();
-    this.etag = 1;
-    this.rules = rules;
+    if(rules) this.rules = rules;
     this.refs = {};
-    if(!content){
-        this.URL="shell";
+    var isShell = !content;
+    if(isShell){
+        this.url=null;
+        this.cachenotify=null;
+        this.etag = 0;
         this.content = {};
     }
     else
     if(content.constructor===String){
         this.outlinks = {};
+        this.etag = 1;
         this.content = JSON.parse(content);
     }
     else
     if(content.constructor===Object){
         this.outlinks = {};
+        this.etag = 1;
         this.content = content;
     }
     else this.content = {};

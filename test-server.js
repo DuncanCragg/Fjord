@@ -3,7 +3,7 @@
 var fjord = require('./fjord');
 
 fjord.init({ "dbFileName": "./fjord-test.db",
-             "nexusPort":  8081
+             "nexusPort": -1
 });
 
 

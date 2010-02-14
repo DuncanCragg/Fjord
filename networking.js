@@ -56,9 +56,10 @@ doGET: function(request, response){
     if(refs){
         var irefslist = refs.split(", ");
         for(var i in irefslist){
-            r=this.extractOWID(irefslist[i]);
-            refslist[i] = r;
-            Cache.cacheNotify[r] = cano;
+            var refurl = irefslist[i];
+            refowid=this.extractOWID(refurl);
+            refslist[i] = refowid;
+            Cache.refShell(refowid, refurl, cano);
         }
     }
     var o = Cache.pull(owid, refslist);
@@ -85,6 +86,7 @@ doGET: function(request, response){
 
 doPOST: function(request, response){
     var colo = request.headers["content-location"];
+    var cano = request.headers["cache-notify"];
     var owid = this.extractOWID(colo);
     var etag = request.headers.etag? parseInt(request.headers.etag.substring(1)): 0;
     var body = "";
@@ -95,16 +97,29 @@ doPOST: function(request, response){
         response.finish();
         var content = JSON.parse(body);
         if(logNetworking) sys.puts(body);
-        Cache.push(owid, etag, colo, content);
+        Cache.push(owid, etag, colo, cano, content);
         if(logNetworking) sys.puts("----------------------------------------");
     });
 },
 
 // ------------------------------------------------------------------
 
-get: function(owid, etag, refslist){
-    if(!this.nexusClient) return;
-    var url = "/a/b/c/"+owid+".json";
+get: function(url, etag, refslist){
+    var host, port, path, client;
+    var owid = (url.substring(0,5)=="owid-")? url: null;
+    if(owid){
+        host=this.nexusHost;
+        port=this.nexusPort;
+        path = "/fjord/"+owid+".json";
+        client=this.nexusClient;
+    }
+    else{
+        var hpp = this.extractHostPortAndPath(url);
+        host=hpp.host;
+        port=hpp.port;
+        path=hpp.path;
+        client=http.createClient(port, host);
+    }
     var refs;
     if(refslist){
         var irefslist = [];
@@ -112,9 +127,9 @@ get: function(owid, etag, refslist){
         refs = irefslist.join(', ');
     }
     var headers = {
-        "Host": this.nexusHost+":"+this.nexusPort,
+        "Host": host+":"+port,
         "User-Agent": "Fjord v0.0.1",
-        "Cache-Notify": Networking.getCacheNotifyURL(),
+        "Cache-Notify": this.getCacheNotifyURL(),
     };
     if(etag) headers["If-None-Match"] = '"'+etag+'"';
     if(refs) headers["Referer"] = refs;
@@ -122,7 +137,8 @@ get: function(owid, etag, refslist){
     if(logNetworking) sys.puts("<---- Request --------------------------");
     if(logNetworking) sys.puts(url+" "+sys.inspect(headers));
     if(logNetworking) sys.puts("----------------------------------------");
-    var request = this.nexusClient.request("GET", url, headers);
+
+    var request = client.request("GET", path, headers);
     request.finish(this.getHeadersIn);
 },
 
@@ -132,6 +148,7 @@ getHeadersIn: function(response){
     if(logNetworking) sys.puts(response.statusCode + ": " + JSON.stringify(response.headers));
 
     var colo = response.headers["content-location"];
+    var cano = response.headers["cache-notify"];
     var owid = Networking.extractOWID(colo);
     var etag = response.headers.etag? parseInt(response.headers.etag.substring(1)): 0;
     var body = "";
@@ -141,13 +158,13 @@ getHeadersIn: function(response){
         response.addListener("complete", function(){
             var content = JSON.parse(body);
             if(logNetworking) sys.puts(body);
-            Cache.push(owid, etag, colo, content);
+            Cache.push(owid, etag, colo, cano, content);
             if(logNetworking) sys.puts("----------------------------------------");
         });
     }
     else
     if(response.statusCode==304){
-        Cache.push(owid, etag, colo);
+        Cache.push(owid, etag, colo, cano);
         if(logNetworking) sys.puts("----------------------------------------");
     }
 },
@@ -160,15 +177,20 @@ push: function(o, canol){
         var headers = {
             "Host": this.nexusHost+":"+this.nexusPort,
             "User-Agent": "Fjord v0.0.1",
-            "Cache-Notify": Networking.getCacheNotifyURL(),
+            "Cache-Notify": this.getCacheNotifyURL(),
             "Content-Location": this.insertOWID(o.owid),
             "Etag": '"'+o.etag+'"',
         };
         if(logNetworking) sys.puts("<---- Request POST ---------------------");
-        if(logNetworking) sys.puts(url+" "+sys.inspect(headers));
+        if(logNetworking) sys.puts(url+" "+sys.inspect(headers)+o);
         if(logNetworking) sys.puts("----------------------------------------");
 
-        var request = this.nexusClient.request("POST", url, headers);
+        var hpp = this.extractHostPortAndPath(url);
+        var host=hpp.host;
+        var port=hpp.port;
+        var path=hpp.path;
+        var client=http.createClient(port, host);
+        var request = client.request("POST", path, headers);
         request.sendBody(o.toString());
         request.finish(this.postHeadersIn);
     }
@@ -200,6 +222,12 @@ extractOWID: function(url){
 
 insertOWID: function(owid){
     return "http://"+this.thisHost+":"+this.thisPort+"/fjord/"+owid+".json";
+},
+
+extractHostPortAndPath: function(url){
+    var a = url.match(/http:\/\/(.+):([0-9]+)(\/.*)/);
+    if(!a && a[1] && a[2] && a[3]){ sys.puts("Invalid URL: "+url); return null; }
+    return { "host": a[1], "port": a[2], "path": a[3] };
 },
 
 };
