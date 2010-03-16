@@ -3,7 +3,7 @@
 // Based on Felix Geisendörfer's http://github.com/felixge/node-dirty
 
 var sys = require('sys');
-var File = require('file').File;
+var fs = require('fs');
 
 var Cache = null;
 
@@ -13,7 +13,6 @@ init: function(cache, config){
     Cache = cache;
 
     this.dbFileName = (config && config.dbFileName) || "./fjord.db";
-    this.file = new File(this.dbFileName, 'a+', {encoding: 'utf8'});
 
     this.objects = [];
     this.length = 0;
@@ -26,38 +25,31 @@ init: function(cache, config){
     this.flushQueueLength = 0;
     this.flushCallbacks = [];
 
-    var p = this.load();
-    if(config && config.dbLoaded){
-        p.addCallback(config.dbLoaded);
-    }
+    this.load(config && config.dbLoaded);
 
     sys.puts("DB file is "+this.dbFileName);
 },
 
-load: function() {
+load: function(cb){
     var self = this;
-    var promise = new process.Promise();
     var buffer = '';
     var offset = 0;
-    var read = function(){
-        self.file.read(16*1024)
-        .addCallback(function(chunk) {
-            if(!chunk)  return promise.emitSuccess();
-            buffer += chunk;
-            while((offset = buffer.indexOf("\n")) !== -1) {
-                var o = Cache.createWebObject(buffer.substr(0, offset));
-                if(!(o.owid in self.index)) self.length++;
-                self.index[o.owid] = (self.objects.push(o)-1);
-                buffer = buffer.substr(offset+1);
-            }
-            read();
-        })
-        .addErrback(function() {
-            promise.emitError(new Error('could not read from '+self.file.filename));
-        });
-    }
-    read();
-    return promise;
+    this.rfile = fs.createReadStream(this.dbFileName, { flags: 'r+', encoding: 'utf8', bufferSize: 16*1024 });
+    this.rfile.addListener("data", function(chunk) {
+        buffer += chunk;
+        while((offset = buffer.indexOf("\n")) !== -1) {
+            var o = Cache.createWebObject(buffer.substr(0, offset));
+            if(!(o.owid in self.index)) self.length++;
+            self.index[o.owid] = (self.objects.push(o)-1);
+            buffer = buffer.substr(offset+1);
+        }
+    });
+    this.rfile.addListener("error", function(e) {
+        sys.puts("could not read from "+this.dbFileName);
+    });
+    this.rfile.addListener("end", function() {
+        if(cb) cb();
+    });
 },
 
 get: function(owid){
@@ -73,7 +65,7 @@ sync: function(o, cb) {
     this.flushOWIDs.push(owid);
     this.flushLength++;
     if(this.flushLength === this.flushLimit) {
-        this.flush().addCallback(function() { if(cb) cb(o); });
+        this.flush();
     } else if(cb) {
         this.flushCallbacks.push(function() { cb(o); });
     }
@@ -84,10 +76,8 @@ sync: function(o, cb) {
 },
 
 flush: function() {
-    var promise = new process.Promise();
     if(this.flushLength === 0) {
-        promise.emitSuccess();
-        return promise;
+        // ok;
     }
     var self = this;
     var chunk = '';
@@ -96,37 +86,41 @@ flush: function() {
     var done = {};
     this.flushQueueLength += length;
 
+    this.wfile = fs.createWriteStream(this.dbFileName, { flags: 'a+', encoding: 'utf8', bufferSize: 16*1024 });
+    this.wfile.addListener("drain", function() {
+        writePromises--;
+        if(writePromises === 0) {
+            self.flushQueueLength -= length;
+            self.flushCallbacks.forEach(function(cb) { cb(); });
+            self.flushCallbacks = [];
+            // ok;
+        }
+        if(self.flushQueueLength === 0 && self.flushLength === 0) {
+            clearTimeout(self.flushTimer);
+            self.flushTimer = null;
+        }
+    });
+    this.wfile.addListener("error", function(e) {
+        sys.puts("could not write to "+this.dbFileName);
+    });
     this.flushOWIDs.forEach(function(owid, i) {
         if(!(owid in done)) {
             chunk += JSON.stringify(self.objects[self.index[owid]])+"\n";
         }
         done[owid] = true;
-        if(chunk.length < 16*1024 && i < (length-1))  return;
+        if(chunk.length < 16*1024 && i < (length-1)) return;
         writePromises++;
-        self.file.write(chunk).addCallback(function() {
-            writePromises--;
-            if(writePromises === 0) {
-                self.flushQueueLength -= length;
-                self.flushCallbacks.forEach(function(cb) { cb(); });
-                self.flushCallbacks = [];
-                promise.emitSuccess();
-            }
-            if(self.flushQueueLength === 0 && self.flushLength === 0) {
-                clearTimeout(self.flushTimer);
-                self.flushTimer = null;
-            }
-        });
+        self.wfile.write(chunk);
         chunk = '';
     });
     this.flushOWIDs = [];
     this.flushLength = 0;
-
-    return promise;
 },
 
 close: function() {
     clearTimeout(this.flushTimer);
-    return this.file.close();
+    if(this.rfile.close) this.rfile.close();
+    if(this.wfile.close) this.wfile.close();
 }
 
 };

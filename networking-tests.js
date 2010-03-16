@@ -57,7 +57,9 @@ test.isEqual("Outlinks of o3 are just o1", Cache[o2].outlinks, expectedOutlinks)
 var client = http.createClient(8080, "localhost");
 
 var headers = { "Host": "localhost:8080" };
-client.request("GET", "/a/b/c/owid-ca0b-0a35-9289-9f8a.json", headers).finish(function(response){
+
+var r=client.request("GET", "/a/b/c/owid-ca0b-0a35-9289-9f8a.json", headers);
+r.addListener("response", function(response){
 
 var statusCode = response.statusCode;
 test.isEqual("Status is 200", 200, statusCode);
@@ -73,14 +75,16 @@ test.isEqual("Cache-Notify is http://localhost:8080/fjord/cache-notify", "http:/
 
 var body = "";
 response.setBodyEncoding("utf8");
-response.addListener("body", function(chunk){ body+=chunk; });
-response.addListener("complete", function(){
+response.addListener("data", function(chunk){ body+=chunk; });
+response.addListener("end", function(){
 test.isEqual("Test Server returned correct o1 rule on direct fetch", JSON.parse(body),
      {"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"}
 );
 
 headers["If-None-Match"] = '"1"';
-client.request("GET", "/a/b/c/owid-ca0b-0a35-9289-9f8a.json", headers).finish(function(response){
+
+var r=client.request("GET", "/a/b/c/owid-ca0b-0a35-9289-9f8a.json", headers);
+r.addListener("response", function(response){
 
 var statusCode = response.statusCode;
 test.isEqual("Status is 304", 304, statusCode);
@@ -88,7 +92,7 @@ test.isEqual("Status is 304", 304, statusCode);
 var etag = parseInt(response.headers["etag"].substring(1));
 test.isEqual("ETag is 1", 1, etag);
 
-response.addListener("complete", function(){
+response.addListener("end", function(){
 
 // -------------------------------------------------------------------
 
@@ -105,7 +109,7 @@ test.isEqual("Outlinks of o4 are just o1", Cache[o2].outlinks, expectedOutlinks)
 
 // -------------------------------------------------------------------
 
-}); }); }); });
+}); }); r.close(); }); }); r.close();
 
 // -------------------------------------------------------------------
 

@@ -72,14 +72,14 @@ doGET: function(request, response){
     if(o.etag!=inmi){
         var os = JSON.stringify(o.content);
         response.sendHeader(200, headers);
-        response.sendBody(os+"\n");
+        response.write(os+"\n");
         if(logNetworking) sys.puts("200 OK; "+os.length+JSON.stringify(headers)+'\n'+os);
     }
     else{
         response.sendHeader(304, headers);
         if(logNetworking) sys.puts("304 Not Modified");
     }
-    response.finish();
+    response.close();
 
     if(logNetworking) sys.puts("<---------------------------------------");
 },
@@ -91,10 +91,10 @@ doPOST: function(request, response){
     var etag = request.headers.etag? parseInt(request.headers.etag.substring(1)): 0;
     var body = "";
     request.setBodyEncoding("utf8");
-    request.addListener("body", function (chunk) { body += chunk; });
-    request.addListener("complete", function () {
+    request.addListener("data", function (chunk) { body += chunk; });
+    request.addListener("end", function () {
         response.sendHeader(200, {});
-        response.finish();
+        response.close();
         var content = JSON.parse(body);
         if(logNetworking) sys.puts(body);
         Cache.push(owid, etag, colo, cano, content);
@@ -139,7 +139,8 @@ get: function(url, etag, refslist){
     if(logNetworking) sys.puts("----------------------------------------");
 
     var request = client.request("GET", path, headers);
-    request.finish(this.getHeadersIn);
+    request.addListener("response", this.getHeadersIn);
+    request.close();
 },
 
 getHeadersIn: function(response){
@@ -154,8 +155,8 @@ getHeadersIn: function(response){
     var body = "";
     response.setBodyEncoding("utf8");
     if(response.statusCode==200){
-        response.addListener("body", function(chunk){ body+=chunk; });
-        response.addListener("complete", function(){
+        response.addListener("data", function(chunk){ body+=chunk; });
+        response.addListener("end", function(){
             var content = JSON.parse(body);
             if(logNetworking) sys.puts(body);
             Cache.push(owid, etag, colo, cano, content);
@@ -191,8 +192,9 @@ push: function(o, canol){
 
         var client=http.createClient(port, host);
         var request = client.request("POST", path, headers);
-        request.sendBody(o.toString());
-        request.finish(this.postHeadersIn);
+        request.write(o.toString());
+        request.addListener("response", this.postHeadersIn);
+        request.close();
     }
 },
 
@@ -201,8 +203,8 @@ postHeadersIn: function(response){
     if(logNetworking) sys.puts(response.statusCode + ": " + JSON.stringify(response.headers));
     var body = "";
     response.setBodyEncoding("utf8");
-    response.addListener("body", function(chunk){ body+=chunk; });
-    response.addListener("complete", function(){
+    response.addListener("data", function(chunk){ body+=chunk; });
+    response.addListener("end", function(){
         if(logNetworking) sys.puts(body);
         if(logNetworking) sys.puts("----------------------------------------");
     });
