@@ -45,7 +45,7 @@ load: function(cb){
         }
     });
     this.rfile.addListener("error", function(e) {
-        sys.puts("could not read from "+this.dbFileName);
+        sys.puts("could not read from persistence file '"+self.dbFileName+"'");
     });
     this.rfile.addListener("end", function() {
         if(cb) cb();
@@ -119,8 +119,8 @@ flush: function() {
 
 close: function() {
     clearTimeout(this.flushTimer);
-    if(this.rfile.close) this.rfile.close();
-    if(this.wfile.close) this.wfile.close();
+    if(this.rfile && this.rfile.close) this.rfile.close();
+    if(this.wfile && this.wfile.close) this.wfile.close();
 }
 
 };

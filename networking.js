@@ -73,7 +73,7 @@ doGET: function(request, response){
         var os = JSON.stringify(o.content);
         response.sendHeader(200, headers);
         response.write(os+"\n");
-        if(logNetworking) sys.puts("200 OK; "+os.length+JSON.stringify(headers)+'\n'+os);
+        if(logNetworking) sys.puts("200 OK; "+os.length+"\n"+JSON.stringify(headers)+'\n'+os);
     }
     else{
         response.sendHeader(304, headers);

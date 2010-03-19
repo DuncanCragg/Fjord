@@ -497,7 +497,7 @@ exports.close = function(){
 
 function evaluate(expression){
     try{
-        var evaled=eval(expression);
+        var evaled=eval(expression); // evalcx
         if(evaled.constructor===Array || evaled.constructor===Object){
             expression=evaled;
         }
@@ -542,6 +542,7 @@ exports.log = log;
 
 // -----------------------------------------------------------------------
 
+// Math.uuidFast
 function owid() {
    return ("owid-"+fourHex()+"-"+fourHex()+"-"+fourHex()+"-"+fourHex());
 }
