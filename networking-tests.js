@@ -73,6 +73,9 @@ test.isEqual("ETag is 1", 1, etag);
 var cacheNotify = response.headers["cache-notify"];
 test.isEqual("Cache-Notify is http://localhost:8080/fjord/cache-notify", "http://localhost:8080/fjord/cache-notify", cacheNotify);
 
+var contentType = response.headers["content-type"];
+test.isEqual("Content-Type is application/json", "application/json", contentType);
+
 var body = "";
 response.setBodyEncoding("utf8");
 response.addListener("data", function(chunk){ body+=chunk; });
@@ -80,6 +83,26 @@ response.addListener("end", function(){
 test.isEqual("Test Server returned correct o1 rule on direct fetch", JSON.parse(body),
      {"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"}
 );
+
+// -------------------------------------------------------------------
+
+var r=client.request("GET", "/u/owid-ca0b-0a35-9289-9f8a.js", headers);
+
+r.addListener("response", function(response){
+
+var contentType = response.headers["content-type"];
+test.isEqual("Content-Type is application/javascript", "application/javascript", contentType);
+
+var body = "";
+response.setBodyEncoding("utf8");
+response.addListener("data", function(chunk){ body+=chunk; });
+response.addListener("end", function(){
+test.isEqual("Test Server returned expected Javascript content",
+ body,
+"O(\n{\"owid\":\"owid-ca0b-0a35-9289-9f8a\",\"refs\":{},\"outlinks\":{},\"etag\":1,\"content\":{\"tags\":\"one\",\"%refs\":{\"tags\":\"two\",\"state\":\"/number;$n/\"},\"state\":\"/number/fix(1,number($n)+0.1)/\"}}\n);\n"
+);
+
+// -------------------------------------------------------------------
 
 headers["If-None-Match"] = '"1"';
 
@@ -109,7 +132,9 @@ test.isEqual("Outlinks of o4 are just o1", Cache[o2].outlinks, expectedOutlinks)
 
 // -------------------------------------------------------------------
 
-}); }); r.close(); }); }); r.close();
+}); }); r.close();
+}); }); r.close();
+}); }); r.close();
 
 // -------------------------------------------------------------------
 
@@ -149,7 +174,7 @@ process.addListener("exit", function () {
                     "rules": rules4,
                     "refs": expectedOutlinks,
                     "outlinks":expectedOutlinks,
-                    "etag":52,
+                    "etag":50,
                     "content":{ "tags": "fou", "state": "10.1", "o1": o1 },
                    });
 

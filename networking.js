@@ -47,6 +47,7 @@ newRequest: function(request, response){
 
 doGET: function(request, response){
 
+    var json = /\.json$/.test(request.url);
     var owid = this.extractOWID(request.url);
     var inms = request.headers["if-none-match"];
     var inmi = inms? parseInt(inms.substring(1)): 0;
@@ -64,13 +65,14 @@ doGET: function(request, response){
     }
     var o = Cache.pull(owid, refslist);
 
-    var headers = { "Content-Type": "application/json",
+    var headers = { "Content-Type": json? "application/json": "application/javascript",
                     "Content-Location": this.insertOWID(owid),
                     "Etag": '"'+o.etag+'"',
                     "Cache-Notify": this.getCacheNotifyURL(),
     };
     if(o.etag!=inmi){
-        var os = JSON.stringify(o.content);
+        var os = JSON.stringify(json? o.content: o);
+        if(!json) os = "O(\n"+os+"\n);";
         response.sendHeader(200, headers);
         response.write(os+"\n");
         if(logNetworking) sys.puts("200 OK; "+os.length+"\n"+JSON.stringify(headers)+'\n'+os);
@@ -218,7 +220,7 @@ getCacheNotifyURL: function(){
 
 extractOWID: function(url){
     if(!url) return null;
-    var a = url.match(/(owid-[-0-9a-z]+)\.json$/);
+    var a = url.match(/(owid-[-0-9a-z]+)\.js(on)?$/);
     return (a && a[1])? a[1]: null;
 },
 

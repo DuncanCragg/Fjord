@@ -1,9 +1,9 @@
 
-tests: run-tests kill-test-server
+tests: kill-test-server run-tests
 
-ins-tests: run-ins-tests kill-test-server
+ins-tests: kill-test-server run-ins-tests
 
-net-tests: run-net-tests kill-test-server
+net-tests: kill-test-server run-net-tests
 
 set-up-dbs:
 	cp fjord-tests-saved.db fjord.db
@@ -28,6 +28,6 @@ pause:
 	sleep 0.5
 
 kill-test-server:
-	pkill node
+	pkill node || echo nothing running
 
 
