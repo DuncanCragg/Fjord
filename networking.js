@@ -63,6 +63,13 @@ doGET: function(request, response){
             Cache.refShell(refowid, refurl, cano);
         }
     }
+    if(!owid){
+        response.sendHeader(400, {});
+        if(logNetworking) sys.puts("400 Bad Request");
+        response.close();
+        return;
+    }
+
     var o = Cache.pull(owid, refslist);
 
     var headers = { "Content-Type": json? "application/json": "application/javascript",
@@ -122,6 +129,7 @@ get: function(url, etag, refslist){
         path=hpp.path;
         client=http.createClient(port, host);
     }
+    if(!client){ sys.puts("No client for "+url); return; }
     var refs;
     if(refslist){
         var irefslist = [];
@@ -159,7 +167,8 @@ getHeadersIn: function(response){
     if(response.statusCode==200){
         response.addListener("data", function(chunk){ body+=chunk; });
         response.addListener("end", function(){
-            var content = JSON.parse(body);
+            var content;
+            try{ content = JSON.parse(body); }catch(e){ sys.puts("GET returned non-JSON content: "+e+"\n"+body); return; }
             if(logNetworking) sys.puts(body);
             Cache.push(owid, etag, colo, cano, content);
             if(logNetworking) sys.puts("----------------------------------------");
@@ -220,7 +229,7 @@ getCacheNotifyURL: function(){
 
 extractOWID: function(url){
     if(!url) return null;
-    var a = url.match(/(owid-[-0-9a-z]+)\.js(on)?$/);
+    var a = url.match(/(owid-[-0-9a-z]+)\.js(on)?/);
     return (a && a[1])? a[1]: null;
 },
 

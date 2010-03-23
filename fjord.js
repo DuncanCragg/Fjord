@@ -116,7 +116,8 @@ Cache.evict = function(owid){
 
 Cache.createWebObject = function(data){
     if(!data) return null;
-    var od = JSON.parse(data);
+    var od;
+    try{ od = JSON.parse(data); } catch(e) { sys.puts("Ooops! corrupt db data: \n"+e+"\n"+data); return null; }
     var o = new WebObject(od.content, od.rules);
     o.owid = od.owid;
     o.etag = od.etag;

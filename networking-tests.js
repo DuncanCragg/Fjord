@@ -86,7 +86,7 @@ test.isEqual("Test Server returned correct o1 rule on direct fetch", JSON.parse(
 
 // -------------------------------------------------------------------
 
-var r=client.request("GET", "/u/owid-ca0b-0a35-9289-9f8a.js", headers);
+var r=client.request("GET", "/u/owid-ca0b-0a35-9289-9f8a.js?cachebust=1341234", headers);
 
 r.addListener("response", function(response){
 

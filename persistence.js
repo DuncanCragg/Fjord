@@ -39,8 +39,10 @@ load: function(cb){
         buffer += chunk;
         while((offset = buffer.indexOf("\n")) !== -1) {
             var o = Cache.createWebObject(buffer.substr(0, offset));
-            if(!(o.owid in self.index)) self.length++;
-            self.index[o.owid] = (self.objects.push(o)-1);
+            if(o){
+                if(!(o.owid in self.index)) self.length++;
+                self.index[o.owid] = (self.objects.push(o)-1);
+            }
             buffer = buffer.substr(offset+1);
         }
     });
