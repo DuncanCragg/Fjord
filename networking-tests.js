@@ -174,7 +174,7 @@ process.addListener("exit", function () {
                     "rules": rules4,
                     "refs": expectedOutlinks,
                     "outlinks":expectedOutlinks,
-                    "etag":50,
+                    "etag":52,
                     "content":{ "tags": "fou", "state": "10.1", "o1": o1 },
                    });
 

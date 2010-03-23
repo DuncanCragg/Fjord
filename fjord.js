@@ -491,6 +491,7 @@ exports.init = function(config){
 exports.close = function(){
     Networking.close();
     Persistence.close();
+    process.exit();
 }
 
 // -----------------------------------------------------------------------

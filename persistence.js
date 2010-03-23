@@ -119,8 +119,8 @@ flush: function() {
 
 close: function() {
     clearTimeout(this.flushTimer);
-    if(this.rfile && this.rfile.close) this.rfile.close();
-    if(this.wfile && this.wfile.close) this.wfile.close();
+    this.rfile.forceClose();
+    this.wfile.close();
 }
 
 };
