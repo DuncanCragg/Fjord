@@ -7,94 +7,98 @@ var fails=0;
 var faildescriptions = [];
 
 function isTrue(message, condition){
-    sys.puts("-------------------\n"+message);
+    log("-------------------\n"+message);
     try{
         assert.ok(condition);
-        sys.puts("..OK");
+        log("..OK");
         oks++;
     } catch(e) {
-        sys.puts("** FAIL: "+condition); 
+        log("** FAIL: "+condition); 
         fails++;
         faildescriptions.push(message);
     }
-    if(fails) sys.puts("FAILs: "+fails);
+    if(fails) log("FAILs: "+fails);
 }
 
 function isFalse(message, condition){
-    sys.puts("-------------------\n"+message);
+    log("-------------------\n"+message);
     try{
         assert.ok(!condition);
-        sys.puts("..OK");
+        log("..OK");
         oks++;
     } catch(e) {
-        sys.puts("** FAIL: "+condition); 
+        log("** FAIL: "+condition); 
         fails++;
         faildescriptions.push(message);
     }
-    if(fails) sys.puts("FAILs: "+fails);
+    if(fails) log("FAILs: "+fails);
 }
 
 function isEqual(message, actual, expected){
-    sys.puts("-------------------\n"+message);
+    log("-------------------\n"+message);
     try{
         assert.deepEqual(actual, expected);
-        sys.puts("Result: "+JSON.stringify(actual)); 
-        sys.puts("..OK");
+        log("Result: "+JSON.stringify(actual)); 
+        log("..OK");
         oks++;
     } catch(e) {
-        sys.puts("** FAIL, expected:"); 
-        sys.puts(JSON.stringify(expected)); 
-        sys.puts("--- got:\n"+JSON.stringify(actual)); 
+        log("** FAIL, expected:"); 
+        log(JSON.stringify(expected)); 
+        log("--- got:\n"+JSON.stringify(actual)); 
         fails++;
         faildescriptions.push(message);
     }
-    if(fails) sys.puts("FAILs: "+fails);
+    if(fails) log("FAILs: "+fails);
 }
 
 function jsonEqual(message, actual, expected){
-    sys.puts("-------------------\n"+message);
+    log("-------------------\n"+message);
     try{
         assert.ok(JSON.stringify(actual)==JSON.stringify(expected));
-        sys.puts("Result: "+JSON.stringify(actual)); 
-        sys.puts("..OK");
+        log("Result: "+JSON.stringify(actual)); 
+        log("..OK");
         oks++;
     } catch(e) {
-        sys.puts("** FAIL, expected:"); 
-        sys.puts(JSON.stringify(expected)); 
-        sys.puts("--- got:\n"+JSON.stringify(actual)); 
+        log("** FAIL, expected:"); 
+        log(JSON.stringify(expected)); 
+        log("--- got:\n"+JSON.stringify(actual)); 
         fails++;
         faildescriptions.push(message);
     }
-    if(fails) sys.puts("FAILs: "+fails);
+    if(fails) log("FAILs: "+fails);
 }
 
 function objectsEqual(message, actual, expected){
-    sys.puts("-------------------\n"+message);
+    log("-------------------\n"+message);
     try{
         assert.ok(actual.equals(expected));
-        sys.puts("Result: "+actual); 
-        sys.puts("..OK");
+        log("Result: "+actual); 
+        log("..OK");
         oks++;
     } catch(e) {
-        sys.puts("** FAIL, expected:"); 
-        sys.puts(expected); 
-        sys.puts("--- got:\n"+actual); 
+        log("** FAIL, expected:"); 
+        log(expected); 
+        log("--- got:\n"+actual); 
         fails++;
         faildescriptions.push(message);
     }
-    if(fails) sys.puts("FAILs: "+fails);
+    if(fails) log("FAILs: "+fails);
 }
 
 function summary(){
-    sys.puts('------------------ Tests Done ---------------------');
-    sys.puts("Pass: "+oks+", Fail: "+fails);
-    sys.puts('---------------------------------------------------');
+    log('------------------ Tests Done ---------------------');
+    log("Pass: "+oks+", Fail: "+fails);
+    log('---------------------------------------------------');
     if(faildescriptions.length){
     for(var i in faildescriptions){
-    sys.puts("** FAIL: "+faildescriptions[i]);
+    log("** FAIL: "+faildescriptions[i]);
     }
-    sys.puts('---------------------------------------------------');
+    log('---------------------------------------------------');
     }
+}
+
+function log(o){
+    sys.puts((""+o).substring(0,2000));
 }
 
 exports.isTrue = isTrue;
