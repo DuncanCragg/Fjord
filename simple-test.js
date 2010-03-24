@@ -98,7 +98,7 @@ function summary(){
 }
 
 function log(o){
-    sys.puts((""+o).substring(0,2000));
+    sys.puts((""+o).substring(0,1800));
 }
 
 exports.isTrue = isTrue;
