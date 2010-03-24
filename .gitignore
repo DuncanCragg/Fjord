@@ -4,3 +4,4 @@
 fjord.db
 fjord-test.db
 doc/local/
+*.log
