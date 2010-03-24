@@ -19,7 +19,7 @@ run-net-tests: set-up-dbs run-test-server pause
 	node networking-tests.js
 
 run-test-server: set-up-dbs
-	./test-server.js 2>&1 > /dev/null &
+	./test-server.js 2>&1 > server.log &
 
 run-ts: set-up-dbs
 	./test-server.js

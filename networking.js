@@ -124,10 +124,12 @@ get: function(url, etag, refslist){
     }
     else{
         var hpp = this.extractHostPortAndPath(url);
-        host=hpp.host;
-        port=hpp.port;
-        path=hpp.path;
-        client=http.createClient(port, host);
+        if(hpp){
+            host=hpp.host;
+            port=hpp.port;
+            path=hpp.path;
+            client=http.createClient(port, host);
+        }
     }
     if(!client){ sys.puts("No client for "+url); return; }
     var refs;
@@ -187,9 +189,13 @@ push: function(o, canol){
     for(var i=0; i< canol.length; i++){
         var url = canol[i];
         var hpp = this.extractHostPortAndPath(url);
-        var host=hpp.host;
-        var port=hpp.port;
-        var path=hpp.path;
+        var host, port, path;
+        if(hpp){
+            host=hpp.host;
+            port=hpp.port;
+            path=hpp.path;
+        }
+        else return;
         var headers = {
             "Host": host+":"+port,
             "User-Agent": "Fjord v0.0.1",
@@ -239,7 +245,7 @@ insertOWID: function(owid){
 
 extractHostPortAndPath: function(url){
     var a = url.match(/http:\/\/(.+):([0-9]+)(\/.*)/);
-    if(!a && a[1] && a[2] && a[3]){ sys.puts("Invalid URL: "+url); return null; }
+    if(!a || !(a[1] && a[2] && a[3])){ sys.puts("Invalid URL: "+url); return null; }
     return { "host": a[1], "port": a[2], "path": a[3] };
 },
 
