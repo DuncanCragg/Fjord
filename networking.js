@@ -56,7 +56,7 @@ doGET: function(request, response){
     var refslist = [];
     if(refs){
         var irefslist = refs.split(", ");
-        for(var i in irefslist){
+        for(var i=0; i< irefslist.length; i++){
             var refurl = irefslist[i];
             refowid=this.extractOWID(refurl);
             refslist[i] = refowid;
@@ -133,7 +133,7 @@ get: function(url, etag, refslist){
     var refs;
     if(refslist){
         var irefslist = [];
-        for(var i in refslist) irefslist[i] = this.insertOWID(refslist[i]);
+        for(var i=0; i< refslist.length; i++) irefslist[i] = this.insertOWID(refslist[i]);
         refs = irefslist.join(', ');
     }
     var headers = {
@@ -184,7 +184,7 @@ getHeadersIn: function(response){
 // ------------------------------------------------------------------
 
 push: function(o, canol){
-    for(var i in canol){
+    for(var i=0; i< canol.length; i++){
         var url = canol[i];
         var hpp = this.extractHostPortAndPath(url);
         var host=hpp.host;

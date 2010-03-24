@@ -41,7 +41,7 @@ Cache.runRulesOnNotifiedObjects = function(){
     while(this.runRulesQueue.length){
         var nq = this.runRulesQueue;
         this.runRulesQueue=[];
-        for(var i in nq) this[nq[i]].runRules();
+        for(var i=0; i< nq.length; i++) this[nq[i]].runRules();
     }
 }
 
@@ -177,7 +177,7 @@ WebObject.prototype.runRules = function(){
 
     this.newlinks={};
 
-    for(var i in this.rules) Cache.get(this.rules[i]).applyTo(this);
+    for(var i=0; i< this.rules.length; i++) Cache.get(this.rules[i]).applyTo(this);
 
     for(var owid in this.outlinks){
         if(this.newlinks[owid]===undefined){
@@ -328,7 +328,7 @@ Applier.prototype.shallowObjectCopy = function(obj){
 
 Applier.prototype.shallowArrayCopy = function(arr){
     var r = [];
-    for(var k in arr) r[k] = arr[k];
+    for(var k=0; k< arr.length; k++) r[k] = arr[k];
     return r;
 }
 
@@ -363,7 +363,7 @@ Applier.prototype.slashApply = function(slashpattern, lhs, bindings){
     lhm = ra[1];
     rhs = ra[3];
     var ands = lhm.split(';');
-    for(var i in ands){
+    for(var i=0; i< ands.length; i++){
         var and = ands[i];
         if(and==''){
             continue;
@@ -465,7 +465,7 @@ Applier.prototype.resolveHas = function(lhs, rhs){
     arg = evaluate(arg);
     if(lhs.constructor!==Array) return lhs;
     if(arg.constructor!==Array) arg = [ arg ];
-    for(var i in arg){
+    for(var i=0; i< arg.length; i++){
         if(!addIfNotIn(lhs, arg[i])) continue;
         lhs.modified=true;
     }
@@ -509,7 +509,7 @@ function evaluate(expression){
 }
 
 function isin(arr, item){
-    for(var i in arr) if(arr[i]==item) return true;
+    for(var i=0; i< arr.length; i++) if(arr[i]==item) return true;
     return false;
 }
 
