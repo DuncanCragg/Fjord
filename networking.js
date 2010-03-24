@@ -10,7 +10,7 @@ exports.Networking = Networking = {
 
 init: function(cache, config){
     Cache = cache;
-
+    logNetworking  = (config && config.logNetworking);
     this.nexusHost = (config && config.nexusHost) || "localhost";
     this.nexusPort = (config && config.nexusPort) || 8080;
     this.thisHost  = (config && config.thisHost)  || "localhost";

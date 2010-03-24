@@ -42,7 +42,9 @@ function isEqual(message, actual, expected){
         sys.puts("..OK");
         oks++;
     } catch(e) {
-        sys.puts("** FAIL, expected:\n"+JSON.stringify(expected)+"\n--- got:\n"+JSON.stringify(actual)); 
+        sys.puts("** FAIL, expected:"); 
+        sys.puts(JSON.stringify(expected)); 
+        sys.puts("--- got:\n"+JSON.stringify(actual)); 
         fails++;
         faildescriptions.push(message);
     }
@@ -57,7 +59,9 @@ function jsonEqual(message, actual, expected){
         sys.puts("..OK");
         oks++;
     } catch(e) {
-        sys.puts("** FAIL, expected:\n"+JSON.stringify(expected)+"\n--- got:\n"+JSON.stringify(actual)); 
+        sys.puts("** FAIL, expected:"); 
+        sys.puts(JSON.stringify(expected)); 
+        sys.puts("--- got:\n"+JSON.stringify(actual)); 
         fails++;
         faildescriptions.push(message);
     }
@@ -72,7 +76,9 @@ function objectsEqual(message, actual, expected){
         sys.puts("..OK");
         oks++;
     } catch(e) {
-        sys.puts("** FAIL, expected:\n"+expected+"\n--- got:\n"+actual); 
+        sys.puts("** FAIL, expected:"); 
+        sys.puts(expected); 
+        sys.puts("--- got:\n"+actual); 
         fails++;
         faildescriptions.push(message);
     }
