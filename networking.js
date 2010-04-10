@@ -66,7 +66,7 @@ doGET: function(request, response){
     if(!owid){
         response.sendHeader(400, {});
         if(logNetworking) sys.puts("400 Bad Request");
-        response.close();
+        response.end();
         return;
     }
 
@@ -88,7 +88,7 @@ doGET: function(request, response){
         response.sendHeader(304, headers);
         if(logNetworking) sys.puts("304 Not Modified");
     }
-    response.close();
+    response.end();
 
     if(logNetworking) sys.puts("<---------------------------------------");
 },
@@ -103,7 +103,7 @@ doPOST: function(request, response){
     request.addListener("data", function (chunk) { body += chunk; });
     request.addListener("end", function () {
         response.sendHeader(200, {});
-        response.close();
+        response.end();
         var content = JSON.parse(body);
         if(logNetworking) sys.puts(body);
         Cache.push(owid, etag, colo, cano, content);
@@ -152,7 +152,7 @@ get: function(url, etag, refslist){
 
     var request = client.request("GET", path, headers);
     request.addListener("response", this.getHeadersIn);
-    request.close();
+    request.end();
 },
 
 getHeadersIn: function(response){
@@ -211,7 +211,7 @@ push: function(o, canol){
         var request = client.request("POST", path, headers);
         request.write(o.toString());
         request.addListener("response", this.postHeadersIn);
-        request.close();
+        request.end();
     }
 },
 
