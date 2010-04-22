@@ -7,7 +7,7 @@ var fs = require('fs');
 
 var Cache = null;
 
-exports.Persistence = {
+exports.Persistence = Persistence = {
 
 init: function(cache, config){
     Cache = cache;

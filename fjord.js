@@ -2,11 +2,15 @@
 var sys = require('sys');
 var assert = require('assert');
 
+if(typeof(Persistence)=='undefined'){
 var persistence = require('./persistence');
 var Persistence = persistence.Persistence;
+}
 
+if(typeof(Networking)=='undefined'){
 var networking = require('./networking');
 var Networking = networking.Networking;
+}
 
 // -----------------------------------------------------------------------
 
