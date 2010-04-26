@@ -14,7 +14,7 @@ var Cache     = fjord.Cache;
 
 WebObject.logUpdates=false;
 
-fjord.init({ "thisPort": 8081 });
+fjord.init({ "thisPort": 24590 });
 
 sys.puts('------------------ Instrument Tests ---------------------');
 

@@ -12,9 +12,9 @@ init: function(cache, config){
     Cache = cache;
     logNetworking  = (config && config.logNetworking);
     this.nexusHost = (config && config.nexusHost) || "localhost";
-    this.nexusPort = (config && config.nexusPort) || 8080;
+    this.nexusPort = (config && config.nexusPort) || 24589;
     this.thisHost  = (config && config.thisHost)  || "localhost";
-    this.thisPort  = (config && config.thisPort ) || 8080;
+    this.thisPort  = (config && config.thisPort ) || 24589;
     if(this.nexusPort >0){
         this.nexusClient = http.createClient(this.nexusPort, this.nexusHost);
         sys.puts("Nexus at "+this.nexusHost+":"+this.nexusPort);

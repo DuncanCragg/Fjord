@@ -12,7 +12,7 @@ var WebObject = fjord.WebObject;
 var Cache     = fjord.Cache;
 
 
-fjord.init({ "thisPort": 8081 });
+fjord.init({ "thisPort": 24590 });
 
 sys.puts('------------------ Fjord Networking Tests ---------------------');
 
@@ -54,11 +54,14 @@ test.isEqual("Outlinks of o3 are just o1", Cache[o2].outlinks, expectedOutlinks)
 
 // -------------------------------------------------------------------
 
-var client = http.createClient(8080, "localhost");
+var client = http.createClient(24589, "localhost");
 
-var headers = { "Host": "localhost:8080" };
+var headers = { "Host": "localhost:24589" };
+
+// -------------------------------------------------------------------
 
 var r=client.request("GET", "/a/b/c/owid-ca0b-0a35-9289-9f8a.json", headers);
+
 r.addListener("response", function(response){
 
 var statusCode = response.statusCode;
@@ -71,7 +74,7 @@ var etag = parseInt(response.headers["etag"].substring(1));
 test.isEqual("ETag is 1", 1, etag);
 
 var cacheNotify = response.headers["cache-notify"];
-test.isEqual("Cache-Notify is http://localhost:8080/fjord/cache-notify", "http://localhost:8080/fjord/cache-notify", cacheNotify);
+test.isEqual("Cache-Notify is http://localhost:24589/fjord/cache-notify", "http://localhost:24589/fjord/cache-notify", cacheNotify);
 
 var contentType = response.headers["content-type"];
 test.isEqual("Content-Type is application/json", "application/json", contentType);
@@ -145,8 +148,8 @@ process.addListener("exit", function () {
     test.jsonEqual("Full o1 is now in place", Cache[o1],
                    {"owid":o1,
                     "refs": expectedRefs,
-                    "url":"http://localhost:8080/fjord/"+o1+".json",
-                    "cachenotify":"http://localhost:8080/fjord/cache-notify",
+                    "url":"http://localhost:24589/fjord/"+o1+".json",
+                    "cachenotify":"http://localhost:24589/fjord/cache-notify",
                     "etag":52,
                     "content":{"tags":"one","state":"done"},
                    });
@@ -178,7 +181,7 @@ process.addListener("exit", function () {
                     "content":{ "tags": "fou", "state": "10.1", "o1": o1 },
                    });
 
-    test.isEqual("CacheNotify URL for o1 is o1's server", Cache[o1].cachenotify, "http://localhost:8080/fjord/cache-notify");
+    test.isEqual("CacheNotify URL for o1 is o1's server", Cache[o1].cachenotify, "http://localhost:24589/fjord/cache-notify");
 
     // ---------------------------------------------------------------
 
