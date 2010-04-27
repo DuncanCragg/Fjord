@@ -78,8 +78,13 @@ doGET: function(request, response){
                     "Cache-Notify": this.getCacheNotifyURL(),
     };
     if(o.etag!=inmi){
-        var os = JSON.stringify(json? o.content: o);
-        if(!json) os = "O(\n"+os+"\n);";
+        var os;
+        if(json){
+            os = JSON.stringify(o.content);
+        } else {
+            os = "O(\n"+JSON.stringify(o)+"\n);";
+            headers = { "Content-Type": "application/javascript" };
+        }
         response.sendHeader(200, headers);
         response.write(os+"\n");
         if(logNetworking) sys.puts("200 OK; "+os.length+"\n"+JSON.stringify(headers)+'\n'+os);

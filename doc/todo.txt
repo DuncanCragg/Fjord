@@ -1,4 +1,6 @@
 
  - README.md
+ - 304 / Etag 0 if no client for object
+ - when that happens: curl: (18) transfer closed with outstanding read data remaining
 
 
