@@ -42,7 +42,11 @@ newRequest: function(request, response){
 
     if(request.method=="GET") Networking.doGET(request, response);
     else
-    if(request.method=="POST") Networking.doPOST(request, response);
+    if(request.method=="POST"){
+        if(request.headers["content-type"]=="application/x-www-form-urlencoded")
+             Networking.doFormPOST(request, response);
+        else Networking.doPOST(request, response);
+    }
 },
 
 doGET: function(request, response){
@@ -107,11 +111,29 @@ doPOST: function(request, response){
     request.setBodyEncoding("utf8");
     request.addListener("data", function (chunk) { body += chunk; });
     request.addListener("end", function () {
+        if(logNetworking) sys.puts(body);
         response.sendHeader(200, {});
         response.end();
-        var content = JSON.parse(body);
-        if(logNetworking) sys.puts(body);
+        var content; 
+        try{ content = JSON.parse(body); }catch(e){ sys.puts("Parse error on incoming object notification: "+e); return; }
         Cache.push(owid, etag, colo, cano, content);
+        if(logNetworking) sys.puts("----------------------------------------");
+    });
+},
+
+doFormPOST: function(request, response){
+    var body = "";
+    request.setBodyEncoding("utf8");
+    request.addListener("data", function (chunk) { body += chunk; });
+    request.addListener("end", function () {
+        if(logNetworking) sys.puts(body);
+        response.sendHeader(200, {});
+        response.end();
+        var body2=Networking.unpackObjectFromForm(body);
+        var o; 
+        try{ o = JSON.parse(body2); }catch(e){ sys.puts("Parse error on incoming object notification: "+e); return; }
+        if(logNetworking) sys.puts(JSON.stringify(o));
+        Cache.push(o.owid, o.etag, null, null, o.content);
         if(logNetworking) sys.puts("----------------------------------------");
     });
 },
@@ -252,6 +274,10 @@ extractHostPortAndPath: function(url){
     var a = url.match(/http:\/\/(.+):([0-9]+)(\/.*)/);
     if(!a || !(a[1] && a[2] && a[3])){ sys.puts("Invalid URL: "+url); return null; }
     return { "host": a[1], "port": a[2], "path": a[3] };
+},
+
+unpackObjectFromForm: function(form){
+    return decodeURIComponent(form.replace(/\+/g, " ")).substring(2);
 },
 
 };

@@ -54,13 +54,13 @@ Cache.put = function(o){
     Persistence.sync(o);
 }
 
-Cache.get = function(owid){
+Cache.get = function(owid, localonly){
     var o = this[owid];
-    if(o && o.url && !o.etag) Networking.get(o.url);
+    if(o && o.url && !o.etag && !localonly) Networking.get(o.url);
     if(!o){
         o = Persistence.get(owid);
         if(o) this[owid] = o;
-        else{
+        else if(!localonly){
             o = WebObject.createShell(owid);
             Networking.get(owid);
         }
@@ -99,12 +99,12 @@ Cache.pull = function(owid, refs){
 }
 
 Cache.push = function(owid, etag, url, cano, content){
-    var o = Cache[owid];
-    if(!o){ log("push without cached object: "+owid+":\n",content); return; }
+    var o = Cache.get(owid, "localonly");
+    if(!o){ log("Cache.push on non-local object: "+owid+":\n",content); return; }
     if(o.etag < etag){
         var isShell = !o.etag;
-        o.url = url;
-        o.cachenotify=cano;
+        if(url)  o.url = url;
+        if(cano) o.cachenotify=cano;
         o.etag = etag;
         o.content = content;
         Persistence.sync(o);
