@@ -10,7 +10,7 @@ var persistenceReady = function(){
 
 fjord.init({ "dbFileName": "./fjord-test.db",
              "dbLoaded": persistenceReady,
-             "nexusPort": -1,
+             "nexusPort": -1, "logNetworking": true,
 });
 
 

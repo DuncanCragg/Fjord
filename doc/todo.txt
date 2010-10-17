@@ -1,6 +1,22 @@
 
  - README.md
+
  - 304 / Etag 0 if no client for object
  - when that happens: curl: (18) transfer closed with outstanding read data remaining
+
+----------------------------------------------------------------------------------------------------
+You can temporarily solve this (and for backward compatibility) by
+setting "Content-Length: 0" when you send a 304 Not Modified header
+and no body.
+----------------------------------------------------------------------------------------------------
+You should also set the "Content-Length" header in your res.writeHead call. Otherwise
+node server defaults to chunked transfer mode. That's not what's causing it to fail
+either, but good practice.
+----------------------------------------------------------------------------------------------------
+You should set the response encoding to "utf8" if it's text. It defaults to
+binary.  If you do not call "setEncoding()" then you will receive a buffer from the
+'data' event.  That is, Buffers are the default.  Remove the setEncoding('binary') to
+use raw buffers.
+----------------------------------------------------------------------------------------------------
 
 

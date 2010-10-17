@@ -12,7 +12,7 @@ var WebObject = fjord.WebObject;
 var Cache     = fjord.Cache;
 
 
-fjord.init({ "thisPort": 24590 });
+fjord.init({ "thisPort": 24590, "logNetworking": true });
 
 sys.puts('------------------ Fjord Networking Tests ---------------------');
 
