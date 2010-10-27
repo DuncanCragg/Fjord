@@ -1,5 +1,5 @@
 
-var sys   = require('sys');
+var sys = require('sys');
 var assert = require('assert');
 
 var test = require('./simple-test');
@@ -9,9 +9,32 @@ var log       = fjord.log;
 var WebObject = fjord.WebObject;
 var Cache     = fjord.Cache;
 
+WebObject.logUpdates=true;
+
 
 sys.puts('------------------ Fjord Observer Tests ---------------------');
 
+// -------------------------------------------------------------------
+/*
+r21 = WebObject.create('{ "tags": "two", "state": "/21/22/", "o1": { "%owid": "/$o1/", "state": "11" }, "%notify": "//has($o1)/" }');
+r22 = WebObject.create('{ "tags": "two", "state": "/22/23/", "o1": {                   "state": "12" } }');
+
+r11 = WebObject.create('{ "tags": "one", "state": "/11/12/", "%notified": { "tags": "two", "state": "22" } }');
+r12 = WebObject.create('{ "tags": "one", "state": "/12/13/", "%notified": { "tags": "two", "state": "23" } }');
+
+o1  = WebObject.create('{ "tags": "one", "state": "11" }',                 [ r11, r12 ] );
+o2  = WebObject.create('{ "tags": "two", "state": "21", "o1": "'+o1+'" }', [ r21, r22 ] );
+
+
+test.objectsEqual("Double Observer ping-pong worked on o1",
+      Cache[o1], new WebObject('{ "tags": "one", "state":"13" }'));
+
+test.objectsEqual("Double Observer ping-pong worked on o2",
+      Cache[o2], new WebObject('{ "tags": "two", "state":"23", "o1":"'+o1+'" }'));
+
+test.isTrue("Etag of o1 now 3", Cache[o1].etag===3);
+test.isTrue("Etag of o2 now 3", Cache[o2].etag===3);
+*/
 // -------------------------------------------------------------------
 
 r11 = WebObject.create('{ "tags": "one", "state": "/11/12/", "%refs": { "tags": "two", "state": "22" } }');
@@ -85,8 +108,6 @@ test.isTrue("Etag of o3 now 3", Cache[o3].etag===4);
 
 // -------------------------------------------------------------------
 
-WebObject.logUpdates=true;
-
 r11 = WebObject.create('{ "tags": "one", "state": "/11/12/", "%refs": [ { "state": "22" }, { "state": "32" } ] }');
 r12 = WebObject.create('{ "tags": "one", "state": "/12/13/", "%refs": [ { "state": "23" }, { "state": "33" } ] }');
 r13 = WebObject.create('{ "tags": "one", "state": "/13/14/", "%refs": [ { "state": "24" }, { "state": "33" } ] }');
@@ -115,8 +136,6 @@ test.objectsEqual("State of o3 gets to 33",
                    Cache[o3], new WebObject('{ "tags": "thr", "state":"33", "o1":" " }'));
 
 // -------------------------------------------------------------------
-
-WebObject.logUpdates=true;
 
 r11 = WebObject.create('{ "tags": "one", "state": "/11/12/", "%refs": [ { "state": "22" }, { "state": "32" } ] }');
 r12 = WebObject.create('{ "tags": "one", "state": "/12/13/", "%refs": [ { "state": "23" } ] }');

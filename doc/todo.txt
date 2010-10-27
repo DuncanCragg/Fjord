@@ -1,4 +1,9 @@
 
+----------------------------------------------------------------------------------------------------
+ - changing %notify shouldn't set modified and increment etag
+ . needs .cachenotify to be remote notified!
+----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
  - README.md
 
  - 304 / Etag 0 if no client for object
@@ -20,3 +25,29 @@ use raw buffers.
 ----------------------------------------------------------------------------------------------------
 
 
+----------------------------------------------------------------------------------------------------
+ - Keep string /and/ local link?
+ - JSON.stringify -vs- o.toString ??
+----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------
+POST .. %unobserved: .. Etag bumped  = 200, Etag same = 403
+----------------------------------------------------------------
+POST to subscribed object:  scanned,   Etag++  200 return changed object
+                            scanned,   Etag    200 just return Etag
+                            unscanned, Etag++  200 return changed object
+                            unscanned, Etag    403 just return Etag; not interested
+----------------------------------------------------------------
+ - it's just initial set only, may drop by itself at any point but that is not interesting info
+    - initial set POSTs state immediately and retries till success
+ - how do GET and POST return codes get handled in Fjord, anyway?
+    - GET: 200, 303, 304, 401, 403, 404; POST: 200, 204, 303, 401, 403, 404, 405
+    - GET  4XX just looks like empty space, but link still stays - retry?
+    - POST 4XX link(s) stay in notifiables list - retry? not if 404/405, if 403, then only on re-set
+ ---------
+ - local dependents are always notified
+    - so need locals and remote-C-N lists, separate from own-notifiables list
+    - local deps need to be notified to at least cover cache update distribution
+ - remove POSTed object from cache if 403 / 405 to prevent DoS
+----------------------------------------------------------------
+../net/forestbucks.txt
+----------------------------------------------------------------

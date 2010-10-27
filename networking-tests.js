@@ -104,7 +104,7 @@ response.addListener("end", function(){
 
 test.isEqual("Test Server returned expected Javascript content",
  body,
-"O(\n{\"owid\":\"owid-ca0b-0a35-9289-9f8a\",\"refs\":{},\"outlinks\":{},\"etag\":1,\"content\":{\"tags\":\"one\",\"%refs\":{\"tags\":\"two\",\"state\":\"/number;$n/\"},\"state\":\"/number/fix(1,number($n)+0.1)/\"}}\n);\n"
+"O(\n{\"owid\":\"owid-ca0b-0a35-9289-9f8a\",\"refs\":{},\"notify\":{},\"outlinks\":{},\"etag\":1,\"content\":{\"tags\":\"one\",\"%refs\":{\"tags\":\"two\",\"state\":\"/number;$n/\"},\"state\":\"/number/fix(1,number($n)+0.1)/\"}}\n);\n"
 );
 
 // -------------------------------------------------------------------
@@ -150,6 +150,7 @@ process.addListener("exit", function () {
     test.jsonEqual("Full o1 is now in place", Cache[o1],
                    {"owid":o1,
                     "refs": expectedRefs,
+                    "notify": {},
                     "url":"http://localhost:24589/fjord/"+o1+".json",
                     "cachenotify":"http://localhost:24589/fjord/cache-notify",
                     "etag":52,
@@ -160,6 +161,7 @@ process.addListener("exit", function () {
                    {"owid":o2,
                     "rules": rules2,
                     "refs": expectedOutlinks,
+                    "notify": {},
                     "outlinks":expectedOutlinks,
                     "etag":52,
                     "content":{ "tags": "two", "state": "done", "o1": o1 },
@@ -169,6 +171,7 @@ process.addListener("exit", function () {
                    {"owid":o3,
                     "rules": rules3,
                     "refs": expectedOutlinks,
+                    "notify": {},
                     "outlinks":expectedOutlinks,
                     "etag":52,
                     "content":{ "tags": "thr", "state": "10.1", "o1": o1 },
@@ -178,6 +181,7 @@ process.addListener("exit", function () {
                    {"owid":o4,
                     "rules": rules4,
                     "refs": expectedOutlinks,
+                    "notify": {},
                     "outlinks":expectedOutlinks,
                     "etag":52,
                     "content":{ "tags": "fou", "state": "10.1", "o1": o1 },

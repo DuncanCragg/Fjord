@@ -9,8 +9,14 @@ set-up-dbs:
 	cp fjord-tests-saved.db fjord.db
 	cp fjord-test-saved.db  fjord-test.db
 
+remove-dbs:
+	rm -f fjord.db fjord-test.db
+
 run-tests: set-up-dbs run-test-server
 	( node language-tests.js; node observer-tests.js; node instrument-tests.js; node persistence-tests.js; node networking-tests.js ) | egrep Pass
+
+run-obs-tests: remove-dbs
+	node observer-tests.js
 
 run-ins-tests: set-up-dbs run-test-server pause
 	node instrument-tests.js

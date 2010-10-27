@@ -24,12 +24,17 @@ Cache.notifyRefsChanged = function(o){
 
 Cache.notifyStateChanged = function(o){
     var canos = {};
+    for(var owid in o.notify){
+        var or = this[owid];
+        if(!or.cachenotify) this.notifyLocal(owid);
+        else canos[or.cachenotify]=true;
+    }
     for(var owid in o.refs){
         var or = this[owid];
         if(!or.cachenotify) this.notifyLocal(owid);
         else canos[or.cachenotify]=true;
     }
-    var canol = getTags(canos);
+    var canol = getTagsFromHash(canos);
     if(canol.length) this.notifyStateRemote(o, canol);
 }
 
@@ -78,7 +83,7 @@ Cache.pollObject = function(owid){
 }
 
 Cache.pollAndRefer = function(o){
-    Networking.get(o.url, o.etag, getTags(o.refs));
+    Networking.get(o.url, o.etag, getTagsFromHash(o.refs));
 }
 
 Cache.refShell = function(owid, url, cano){
@@ -153,6 +158,7 @@ function WebObject(content, rules){
     this.owid = owid();
     if(rules) this.rules = rules;
     this.refs = {};
+    this.notify = {};
     var isShell = !content;
     if(isShell){
         this.url=null;
@@ -214,14 +220,21 @@ WebObject.prototype.ensureRefs = function(refs){
 }
 
 WebObject.prototype.applyTo = function(that){
+
     that.content["%owid"]=that.owid;
     that.content["%etag"]=that.etag+"";
-    that.content["%refs"]=getTags(that.refs);
+    that.content["%refs"]=getTagsFromHash(that.refs);
+    that.content["%notify"]=getTagsFromHash(that.notify);
+
     var applyjson=new Applier(this.content, that.content, { "%owid": that.owid }, that.newlinks).apply();
     if(applyjson!=null && applyjson!==that.content){ that.content = applyjson; that.modified=true; }
+
+    that.notify=getHashFromTags(that.content["%notify"]);
+    delete that.content["%notify"];
     delete that.content["%refs"];
     delete that.content["%etag"];
     delete that.content["%owid"];
+
     return that;
 }
 
@@ -528,9 +541,15 @@ function removeFrom(arr, item){
     } 
 }
 
-function getTags(o){
+function getTagsFromHash(o){
     var r=[];
     for(var i in o) if(i.constructor===String) r.push(i);
+    return r;
+}
+
+function getHashFromTags(l){
+    var r={};
+    for(var i=0; i<l.length; i++) r[l[i]]=true;
     return r;
 }
 
