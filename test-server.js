@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-var sys = require('sys');
+var util = require('util');
 
 var fjord = require('./fjord');
 
 var persistenceReady = function(){
-    sys.puts("ready");
+    util.puts("ready");
 }
 
 fjord.init({ "dbFileName": "./fjord-test.db",

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var sys = require('sys');
+var util = require('util');
 var assert = require('assert');
 
 var test = require('./simple-test');
@@ -17,7 +17,7 @@ WebObject.logUpdates=false;
 
 var persistenceReady = function(){
 
-sys.puts('------------------ Fjord Persistence Tests ---------------------');
+util.puts('------------------ Fjord Persistence Tests ---------------------');
 
 rules1 = [ 
   WebObject.create('{ "tags": "one", "%refs": { "tags": "two", "state": "/number;$n/" }, "state": "/number/fix(1,number($n)+0.1)/" }'),

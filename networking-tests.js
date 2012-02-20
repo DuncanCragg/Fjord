@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var sys = require('sys');
+var util = require('util');
 var http = require('http');
 var assert = require('assert');
 
@@ -14,7 +14,7 @@ var Cache     = fjord.Cache;
 
 fjord.init({ "thisPort": 24590, "logNetworking": true });
 
-sys.puts('------------------ Fjord Networking Tests ---------------------');
+util.puts('------------------ Fjord Networking Tests ---------------------');
 
 WebObject.logUpdates=false;
 
@@ -62,7 +62,7 @@ var headers = { "Host": "localhost:24589" };
 
 var r=client.request("GET", "/a/b/c/owid-ca0b-0a35-9289-9f8a.json", headers);
 
-r.addListener("response", function(response){
+r.on("response", function(response){
 
 var statusCode = response.statusCode;
 test.isEqual("Status is 200", statusCode, 200);
@@ -80,9 +80,9 @@ var contentType = response.headers["content-type"];
 test.isEqual("Content-Type is application/json", contentType, "application/json");
 
 var body = "";
-response.setBodyEncoding("utf8");
-response.addListener("data", function(chunk){ body+=chunk; });
-response.addListener("end", function(){
+response.setEncoding("utf8");
+response.on("data", function(chunk){ body+=chunk; });
+response.on("end", function(){
 
 test.isEqual("Test Server returned correct o1 rule on direct fetch", JSON.parse(body),
      {"tags":"one","%refs":{"tags":"two","state":"/number;$n/"},"state":"/number/fix(1,number($n)+0.1)/"}
@@ -92,15 +92,15 @@ test.isEqual("Test Server returned correct o1 rule on direct fetch", JSON.parse(
 
 var r=client.request("GET", "/u/owid-ca0b-0a35-9289-9f8a.js?x=1341234", headers);
 
-r.addListener("response", function(response){
+r.on("response", function(response){
 
 var contentType = response.headers["content-type"];
 test.isEqual("Content-Type is application/javascript", contentType, "application/javascript");
 
 var body = "";
-response.setBodyEncoding("utf8");
-response.addListener("data", function(chunk){ body+=chunk; });
-response.addListener("end", function(){
+response.setEncoding("utf8");
+response.on("data", function(chunk){ body+=chunk; });
+response.on("end", function(){
 
 test.isEqual("Test Server returned expected Javascript content",
  body,
@@ -112,7 +112,7 @@ test.isEqual("Test Server returned expected Javascript content",
 headers["If-None-Match"] = '"1"';
 
 var r=client.request("GET", "/a/b/c/owid-ca0b-0a35-9289-9f8a.json", headers);
-r.addListener("response", function(response){
+r.on("response", function(response){
 
 var statusCode = response.statusCode;
 test.isEqual("Status is 304", statusCode, 304);
@@ -120,7 +120,7 @@ test.isEqual("Status is 304", statusCode, 304);
 var etag = parseInt(response.headers["etag"].substring(1));
 test.isEqual("ETag is 1", etag, 1);
 
-response.addListener("end", function(){
+response.on("end", function(){
 
 // -------------------------------------------------------------------
 
@@ -143,7 +143,7 @@ test.isEqual("Outlinks of o4 are just o1", Cache[o2].outlinks, expectedOutlinks)
 
 // -------------------------------------------------------------------
 
-process.addListener("exit", function () {
+process.on("exit", function () {
 
     // ---------------------------------------------------------------
 
@@ -196,7 +196,7 @@ process.addListener("exit", function () {
 
 // -------------------------------------------------------------------
 
-setTimeout(fjord.close, 1600);
+setTimeout(fjord.close, 500);
 
 // -------------------------------------------------------------------
 

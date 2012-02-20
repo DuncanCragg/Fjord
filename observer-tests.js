@@ -1,5 +1,5 @@
 
-var sys = require('sys');
+var util = require('util');
 var assert = require('assert');
 
 var test = require('./simple-test');
@@ -12,7 +12,7 @@ var Cache     = fjord.Cache;
 WebObject.logUpdates=true;
 
 
-sys.puts('------------------ Fjord Observer Tests ---------------------');
+util.puts('------------------ Fjord Observer Tests ---------------------');
 
 // -------------------------------------------------------------------
 /*

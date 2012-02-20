@@ -1,5 +1,5 @@
 
-var sys = require('sys');
+var util = require('util');
 var assert = require('assert');
 
 var oks  =0;
@@ -98,7 +98,7 @@ function summary(){
 }
 
 function log(o){
-    sys.puts((""+o).substring(0,1700));
+    util.puts((""+o).substring(0,1700));
 }
 
 exports.isTrue = isTrue;

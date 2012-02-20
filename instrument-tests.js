@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var sys   = require('sys');
+var util   = require('util');
 var assert = require('assert');
 
 var test = require('./simple-test');
@@ -16,7 +16,7 @@ WebObject.logUpdates=false;
 
 fjord.init({ "thisPort": 24590 });
 
-sys.puts('------------------ Instrument Tests ---------------------');
+util.puts('------------------ Instrument Tests ---------------------');
 
 // -------------------------------------------------------------------
 

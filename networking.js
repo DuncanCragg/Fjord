@@ -1,5 +1,5 @@
 
-var sys = require('sys');
+var util = require('util');
 var http = require('http');
 
 var Cache = null;
@@ -17,12 +17,12 @@ init: function(cache, config){
     this.thisPort  = (config && config.thisPort ) || 24589;
     if(this.nexusPort >0){
         this.nexusClient = http.createClient(this.nexusPort, this.nexusHost);
-        sys.puts("Nexus at "+this.nexusHost+":"+this.nexusPort);
+        util.puts("Nexus at "+this.nexusHost+":"+this.nexusPort);
     }
     if(this.thisPort >0){
         this.thisServer  = http.createServer(this.newRequest);
         this.thisServer.listen(this.thisPort);
-        sys.puts("Listening on "+this.thisPort);
+        util.puts("Listening on "+this.thisPort);
     }
 },
 
@@ -34,11 +34,11 @@ close: function(){ this.thisServer.close(); },
 
 newRequest: function(request, response){
 
-    if(logNetworking) sys.puts("----> Request --------------------------");
-    if(logNetworking) sys.puts("method="+request.method);
-    if(logNetworking) sys.puts("path="+JSON.stringify(request.url));
-    if(logNetworking) sys.puts("headers="+JSON.stringify(request.headers));
-    if(logNetworking) sys.puts("----------------------------------------");
+    if(logNetworking) util.puts("----> Request --------------------------");
+    if(logNetworking) util.puts("method="+request.method);
+    if(logNetworking) util.puts("path="+JSON.stringify(request.url));
+    if(logNetworking) util.puts("headers="+JSON.stringify(request.headers));
+    if(logNetworking) util.puts("----------------------------------------");
 
     if(request.method=="GET") Networking.doGET(request, response);
     else
@@ -68,8 +68,8 @@ doGET: function(request, response){
         }
     }
     if(!owid){
-        response.sendHeader(400, {});
-        if(logNetworking) sys.puts("400 Bad Request");
+        response.writeHead(400, {});
+        if(logNetworking) util.puts("400 Bad Request");
         response.end();
         return;
     }
@@ -89,17 +89,17 @@ doGET: function(request, response){
             os = "O(\n"+JSON.stringify(o)+"\n);";
             headers = { "Content-Type": "application/javascript" };
         }
-        response.sendHeader(200, headers);
+        response.writeHead(200, headers);
         response.write(os+"\n");
-        if(logNetworking) sys.puts("200 OK; "+os.length+"\n"+JSON.stringify(headers)+'\n'+os);
+        if(logNetworking) util.puts("200 OK; "+os.length+"\n"+JSON.stringify(headers)+'\n'+os);
     }
     else{
-        response.sendHeader(304, headers);
-        if(logNetworking) sys.puts("304 Not Modified");
+        response.writeHead(304, headers);
+        if(logNetworking) util.puts("304 Not Modified");
     }
     response.end();
 
-    if(logNetworking) sys.puts("<---------------------------------------");
+    if(logNetworking) util.puts("<---------------------------------------");
 },
 
 doPOST: function(request, response){
@@ -108,33 +108,33 @@ doPOST: function(request, response){
     var owid = this.extractOWID(colo);
     var etag = request.headers.etag? parseInt(request.headers.etag.substring(1)): 0;
     var body = "";
-    request.setBodyEncoding("utf8");
-    request.addListener("data", function (chunk) { body += chunk; });
-    request.addListener("end", function () {
-        if(logNetworking) sys.puts(body);
-        response.sendHeader(200, {});
+    request.setEncoding("utf8");
+    request.on("data", function (chunk) { body += chunk; });
+    request.on("end", function () {
+        if(logNetworking) util.puts(body);
+        response.writeHead(200, {});
         response.end();
         var content; 
-        try{ content = JSON.parse(body); }catch(e){ sys.puts("Parse error on incoming object notification: "+e); return; }
+        try{ content = JSON.parse(body); }catch(e){ util.puts("Parse error on incoming object notification: "+e); return; }
         Cache.push(owid, etag, colo, cano, content);
-        if(logNetworking) sys.puts("----------------------------------------");
+        if(logNetworking) util.puts("----------------------------------------");
     });
 },
 
 doFormPOST: function(request, response){
     var body = "";
-    request.setBodyEncoding("utf8");
-    request.addListener("data", function (chunk) { body += chunk; });
-    request.addListener("end", function () {
-        if(logNetworking) sys.puts(body);
-        response.sendHeader(200, {});
+    request.setEncoding("utf8");
+    request.on("data", function (chunk) { body += chunk; });
+    request.on("end", function () {
+        if(logNetworking) util.puts(body);
+        response.writeHead(200, {});
         response.end();
         var body2=Networking.unpackObjectFromForm(body);
         var o; 
-        try{ o = JSON.parse(body2); }catch(e){ sys.puts("Parse error on incoming object notification: "+e); return; }
-        if(logNetworking) sys.puts(JSON.stringify(o));
+        try{ o = JSON.parse(body2); }catch(e){ util.puts("Parse error on incoming object notification: "+e); return; }
+        if(logNetworking) util.puts(JSON.stringify(o));
         Cache.push(o.owid, o.etag, null, null, o.content);
-        if(logNetworking) sys.puts("----------------------------------------");
+        if(logNetworking) util.puts("----------------------------------------");
     });
 },
 
@@ -158,7 +158,7 @@ get: function(url, etag, refslist){
             client=http.createClient(port, host);
         }
     }
-    if(!client){ sys.puts("No client for "+url); return; }
+    if(!client){ util.puts("No client for "+url); return; }
     var refs;
     if(refslist){
         var irefslist = [];
@@ -173,40 +173,40 @@ get: function(url, etag, refslist){
     if(etag) headers["If-None-Match"] = '"'+etag+'"';
     if(refs) headers["Referer"] = refs;
 
-    if(logNetworking) sys.puts("<---- Request --------------------------");
-    if(logNetworking) sys.puts(url+" "+sys.inspect(headers));
-    if(logNetworking) sys.puts("----------------------------------------");
+    if(logNetworking) util.puts("<---- Request --------------------------");
+    if(logNetworking) util.puts(url+" "+util.inspect(headers));
+    if(logNetworking) util.puts("----------------------------------------");
 
     var request = client.request("GET", path, headers);
-    request.addListener("response", this.getHeadersIn);
+    request.on("response", this.getHeadersIn);
     request.end();
 },
 
 getHeadersIn: function(response){
 
-    if(logNetworking) sys.puts("----> Response -------------------------");
-    if(logNetworking) sys.puts(response.statusCode + ": " + JSON.stringify(response.headers));
+    if(logNetworking) util.puts("----> Response -------------------------");
+    if(logNetworking) util.puts(response.statusCode + ": " + JSON.stringify(response.headers));
 
     var colo = response.headers["content-location"];
     var cano = response.headers["cache-notify"];
     var owid = Networking.extractOWID(colo);
     var etag = response.headers.etag? parseInt(response.headers.etag.substring(1)): 0;
     var body = "";
-    response.setBodyEncoding("utf8");
+    response.setEncoding("utf8");
     if(response.statusCode==200){
-        response.addListener("data", function(chunk){ body+=chunk; });
-        response.addListener("end", function(){
+        response.on("data", function(chunk){ body+=chunk; });
+        response.on("end", function(){
             var content;
-            try{ content = JSON.parse(body); }catch(e){ sys.puts("GET returned non-JSON content: "+e+"\n"+body); return; }
-            if(logNetworking) sys.puts(body);
+            try{ content = JSON.parse(body); }catch(e){ util.puts("GET returned non-JSON content: "+e+"\n"+body); return; }
+            if(logNetworking) util.puts(body);
             Cache.push(owid, etag, colo, cano, content);
-            if(logNetworking) sys.puts("----------------------------------------");
+            if(logNetworking) util.puts("----------------------------------------");
         });
     }
     else
     if(response.statusCode==304){
         Cache.push(owid, etag, colo, cano);
-        if(logNetworking) sys.puts("----------------------------------------");
+        if(logNetworking) util.puts("----------------------------------------");
     }
 },
 
@@ -230,27 +230,27 @@ push: function(o, canol){
             "Content-Location": this.insertOWID(o.owid),
             "Etag": '"'+o.etag+'"',
         };
-        if(logNetworking) sys.puts("<---- Request POST ---------------------");
-        if(logNetworking) sys.puts(url+" "+sys.inspect(headers)+o);
-        if(logNetworking) sys.puts("----------------------------------------");
+        if(logNetworking) util.puts("<---- Request POST ---------------------");
+        if(logNetworking) util.puts(url+" "+util.inspect(headers)+o);
+        if(logNetworking) util.puts("----------------------------------------");
 
         var client=http.createClient(port, host);
         var request = client.request("POST", path, headers);
         request.write(o.toString());
-        request.addListener("response", this.postHeadersIn);
+        request.on("response", this.postHeadersIn);
         request.end();
     }
 },
 
 postHeadersIn: function(response){
-    if(logNetworking) sys.puts("----> POST Response -------------------------");
-    if(logNetworking) sys.puts(response.statusCode + ": " + JSON.stringify(response.headers));
+    if(logNetworking) util.puts("----> POST Response -------------------------");
+    if(logNetworking) util.puts(response.statusCode + ": " + JSON.stringify(response.headers));
     var body = "";
-    response.setBodyEncoding("utf8");
-    response.addListener("data", function(chunk){ body+=chunk; });
-    response.addListener("end", function(){
-        if(logNetworking) sys.puts(body);
-        if(logNetworking) sys.puts("----------------------------------------");
+    response.setEncoding("utf8");
+    response.on("data", function(chunk){ body+=chunk; });
+    response.on("end", function(){
+        if(logNetworking) util.puts(body);
+        if(logNetworking) util.puts("----------------------------------------");
     });
 },
 
@@ -272,7 +272,7 @@ insertOWID: function(owid){
 
 extractHostPortAndPath: function(url){
     var a = url.match(/http:\/\/(.+):([0-9]+)(\/.*)/);
-    if(!a || !(a[1] && a[2] && a[3])){ sys.puts("Invalid URL: "+url); return null; }
+    if(!a || !(a[1] && a[2] && a[3])){ util.puts("Invalid URL: "+url); return null; }
     return { "host": a[1], "port": a[2], "path": a[3] };
 },
 

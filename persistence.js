@@ -2,7 +2,7 @@
 // --------------------------------------------------------------------------
 // Based on Felix Geisendörfer's http://github.com/felixge/node-dirty
 
-var sys = require('sys');
+var util = require('util');
 var fs = require('fs');
 
 var Cache = null;
@@ -27,7 +27,7 @@ init: function(cache, config){
 
     this.load(config && config.dbLoaded);
 
-    sys.puts("DB file is "+this.dbFileName);
+    util.puts("DB file is "+this.dbFileName);
 },
 
 load: function(cb){
@@ -47,7 +47,7 @@ load: function(cb){
         }
     });
     this.rfile.addListener("error", function(e) {
-        sys.puts("could not read from persistence file '"+self.dbFileName+"'");
+        util.puts("could not read from persistence file '"+self.dbFileName+"'");
     });
     this.rfile.addListener("end", function() {
         if(cb) cb();
@@ -103,7 +103,7 @@ flush: function() {
         }
     });
     this.wfile.addListener("error", function(e) {
-        sys.puts("could not write to "+this.dbFileName);
+        util.puts("could not write to "+this.dbFileName);
     });
     this.flushOWIDs.forEach(function(owid, i) {
         if(!(owid in done)) {

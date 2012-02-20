@@ -1,5 +1,5 @@
 
-var sys = require('sys');
+var util = require('util');
 var assert = require('assert');
 
 if(typeof(Persistence)=='undefined'){
@@ -17,7 +17,7 @@ var Networking = networking.Networking;
 var Cache = { "runRulesQueue": [] };
 
 Cache.notifyRefsChanged = function(o){
-    if(!o.url) this.notifyLocal(o.owid);
+    if(!o.url) this.notifyLocal(o);
     else
     if(o.etag) this.notifyRefsRemote(o);
 }
@@ -26,20 +26,20 @@ Cache.notifyStateChanged = function(o){
     var canos = {};
     for(var owid in o.notify){
         var or = this[owid];
-        if(!or.cachenotify) this.notifyLocal(owid);
+        if(!or.cachenotify) this.notifyLocal(or);
         else canos[or.cachenotify]=true;
     }
     for(var owid in o.refs){
         var or = this[owid];
-        if(!or.cachenotify) this.notifyLocal(owid);
+        if(!or.cachenotify) this.notifyLocal(or);
         else canos[or.cachenotify]=true;
     }
     var canol = getTagsFromHash(canos);
     if(canol.length) this.notifyStateRemote(o, canol);
 }
 
-Cache.notifyLocal = function(owid){
-    addIfNotIn(this.runRulesQueue, owid);
+Cache.notifyLocal = function(o){
+    addIfNotIn(this.runRulesQueue, o.owid);
 }
 
 Cache.notifyStateRemote = function(o, canol){
@@ -126,7 +126,7 @@ Cache.evict = function(owid){
 Cache.createWebObject = function(data){
     if(!data) return null;
     var od;
-    try{ od = JSON.parse(data); } catch(e) { sys.puts("Ooops! corrupt db data: \n"+e+"\n"+data); return null; }
+    try{ od = JSON.parse(data); } catch(e) { util.puts("Ooops! corrupt db data: \n"+e+"\n"+data); return null; }
     var o = new WebObject(od.content, od.rules);
     o.owid = od.owid;
     o.etag = od.etag;
@@ -141,7 +141,7 @@ WebObject.create = function(content, rules){
     var o = new WebObject(content, rules);
     Cache.put(o);
     if(rules){
-        Cache.notifyLocal(o.owid);
+        Cache.notifyLocal(o);
         Cache.runRulesOnNotifiedObjects();
     }
     return o.owid;
@@ -211,7 +211,7 @@ WebObject.prototype.runRules = function(){
         this.etag++;
         Persistence.sync(this);
         Cache.notifyStateChanged(this);
-        if(WebObject.logUpdates) sys.puts("------------------\n"+JSON.stringify(this));
+        if(WebObject.logUpdates) util.puts("------------------\n"+JSON.stringify(this));
     }
 }
 
@@ -242,9 +242,7 @@ WebObject.prototype.apply = function(rule){ return rule.applyTo(this); }
 
 WebObject.prototype.toString = function(){ return JSON.stringify(this.content); }
 
-WebObject.prototype.equals = function(that){ 
-    return deepEqual(this.content, that.content);
-}
+WebObject.prototype.equals = function(that){ return deepEqual(this.content, that.content); }
 
 exports.WebObject = WebObject;
 
@@ -470,7 +468,7 @@ Applier.prototype.resolveBindings = function(rhs, bindings){
     while((matches = re.exec(rhs))!=null){
         var variable = matches[0].substring(1);
         var val = bindings[variable];
-        if(!val){ sys.puts("** No binding for $"+variable); continue; }
+        if(!val){ util.puts("** No binding for $"+variable); continue; }
         if(val.constructor===Array && val.length==1) val=val[0];
         rhs=rhs.replace("$"+variable, JSON.stringify(val), "g");
     }
@@ -560,7 +558,7 @@ function deepEqual(o1, o2){
 }
 
 function log(message, value){
-    sys.puts("------------------\n"+message+" "+(value!=null? JSON.stringify(value): ""));
+    util.puts("------------------\n"+message+" "+(value!=null? JSON.stringify(value): ""));
 }
 
 exports.log = log;

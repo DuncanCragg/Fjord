@@ -1,5 +1,5 @@
 
-var sys   = require('sys');
+var util   = require('util');
 var assert = require('assert');
 
 var test = require('./simple-test');
@@ -10,7 +10,7 @@ var WebObject = fjord.WebObject;
 var Cache     = fjord.Cache;
 
 
-sys.puts('------------------ Fjord Language Tests ---------------------');
+util.puts('------------------ Fjord Language Tests ---------------------');
 
 // -------------------------------------------------------------------
 
